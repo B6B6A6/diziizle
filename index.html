@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Esref Rüya - 22. Bölüm | DiziTV.GT.TC</title>
 
-        <! AdsGram SDK -->
-   
+    <!-- AdsGram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
      
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -404,6 +403,52 @@
             display: block;
         }
         
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #2a3245;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background-color: #e50914;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #8a8d93;
+            margin-bottom: 10px;
+        }
+        
+        /* Reklam Bilgisi */
+        .ad-info {
+            background-color: #2a3245;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ad-count {
+            font-size: 14px;
+            color: #e1e1e1;
+        }
+        
+        .ad-timer {
+            font-size: 14px;
+            color: #e50914;
+            font-weight: bold;
+        }
+        
         /* Footer */
         footer {
             background-color: #1a1f2e;
@@ -516,10 +561,26 @@
                                 title="Esref Rüya 22. Bölüm" 
                                 frameborder="0" 
                                 allow="autoplay" 
-                                allowfullscreen>
+                                allowfullscreen
+                                id="mainVideo">
                             </iframe>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Reklam Bilgi Paneli -->
+                <div class="ad-info">
+                    <div class="ad-count">Reklam: <span id="currentAd">0</span>/5</div>
+                    <div class="ad-timer">Sonraki reklam: <span id="nextAdTimer">01:00</span></div>
+                </div>
+                
+                <!-- İlerleme Çubuğu -->
+                <div class="progress-info">
+                    <span>Video İlerlemesi</span>
+                    <span id="videoProgress">0:00 / 30:00</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
                 </div>
                 
                 <div class="video-info">
@@ -598,7 +659,7 @@
     <div class="adsgram-modal" id="adsgramModal">
         <div class="adsgram-content">
             <div class="adsgram-header">
-                <div class="adsgram-title">Reklam</div>
+                <div class="adsgram-title">Reklam - <span id="adNumber">1</span>/5</div>
                 <button class="close-adsgram" id="closeAdsgram">&times;</button>
             </div>
             <div class="adsgram-video">
@@ -626,9 +687,68 @@
         document.addEventListener('DOMContentLoaded', function() {
             const playOverlay = document.getElementById('playOverlay');
             const videoContainer = document.getElementById('videoContainer');
+            const mainVideo = document.getElementById('mainVideo');
             const adsgramModal = document.getElementById('adsgramModal');
             const closeAdsgram = document.getElementById('closeAdsgram');
             const adsgramContainer = document.getElementById('adsgram-ad-container');
+            const progressBar = document.getElementById('progressBar');
+            const videoProgress = document.getElementById('videoProgress');
+            const currentAd = document.getElementById('currentAd');
+            const nextAdTimer = document.getElementById('nextAdTimer');
+            const adNumber = document.getElementById('adNumber');
+            
+            // Video ve reklam ayarları
+            let videoDuration = 30 * 60; // 30 dakika (saniye cinsinden)
+            let adInterval = 6 * 60; // 6 dakikada bir reklam (saniye cinsinden)
+            let adDuration = 30; // Reklam süresi (saniye)
+            let totalAds = 5; // Toplam reklam sayısı
+            let currentAdCount = 0;
+            let videoTime = 0;
+            let isPlaying = false;
+            let videoTimer;
+            let adTimer;
+            
+            // İlerleme çubuğunu güncelleme
+            function updateProgressBar() {
+                const progressPercent = (videoTime / videoDuration) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+                
+                const currentMinutes = Math.floor(videoTime / 60);
+                const currentSeconds = Math.floor(videoTime % 60);
+                const totalMinutes = Math.floor(videoDuration / 60);
+                const totalSeconds = Math.floor(videoDuration % 60);
+                
+                videoProgress.textContent = 
+                    `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${totalMinutes}:${totalSeconds < 10 ? '0' : ''}${totalSeconds}`;
+                
+                // Sonraki reklam için geri sayım
+                const timeToNextAd = adInterval - (videoTime % adInterval);
+                const minutesToAd = Math.floor(timeToNextAd / 60);
+                const secondsToAd = Math.floor(timeToNextAd % 60);
+                
+                nextAdTimer.textContent = 
+                    `${minutesToAd}:${secondsToAd < 10 ? '0' : ''}${secondsToAd}`;
+            }
+            
+            // Video zamanlayıcısını başlat
+            function startVideoTimer() {
+                if (videoTimer) clearInterval(videoTimer);
+                
+                videoTimer = setInterval(function() {
+                    if (isPlaying && videoTime < videoDuration) {
+                        videoTime++;
+                        updateProgressBar();
+                        
+                        // Reklam zamanı kontrolü
+                        if (videoTime > 0 && videoTime % adInterval === 0 && currentAdCount < totalAds) {
+                            showAd();
+                        }
+                    } else if (videoTime >= videoDuration) {
+                        clearInterval(videoTimer);
+                        isPlaying = false;
+                    }
+                }, 1000);
+            }
             
             // Adsgram reklamını yükleme fonksiyonu
             function loadAdsgramAd() {
@@ -638,7 +758,7 @@
                 // Adsgram reklam scriptini oluştur
                 const script = document.createElement('script');
                 script.type = 'text/javascript';
-                script.src = 'https://adsgram.com/ads/17997/embed.js';
+                script.src = 'https://adsgram.com/ads/ 17997/embed.js';
                 script.async = true;
                 
                 // Script yüklendikten sonra
@@ -651,7 +771,7 @@
                         if (adFrame) {
                             adFrame.onload = function() {
                                 // Reklam bittiğinde otomatik kapat
-                                setTimeout(closeAdsgramModal, 20000); // 20 saniye sonra kapat
+                                setTimeout(closeAdsgramModal, adDuration * 1000);
                             };
                         }
                     }, 1000);
@@ -671,16 +791,16 @@
                 adsgramContainer.innerHTML = `
                     <div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg, #1a1f2e 0%, #2a3245 100%);color:white;padding:20px;text-align:center;">
                         <div style="font-size:32px;margin-bottom:20px;">🎬</div>
-                        <div style="font-size:24px;margin-bottom:15px;font-weight:bold;">Reklam</div>
+                        <div style="font-size:24px;margin-bottom:15px;font-weight:bold;">Reklam ${currentAdCount}/${totalAds}</div>
                         <div style="margin-bottom:25px;font-size:16px;opacity:0.8;">Bu alanda Adsgram reklamı gösterilecek</div>
-                        <div style="margin-bottom:15px;font-size:14px;opacity:0.7;">UnitID: 17997</div>
+                        <div style="margin-bottom:15px;font-size:14px;opacity:0.7;">UnitID: 18429</div>
                         <div style="margin-bottom:20px;font-size:14px;">Reklam otomatik olarak kapanacak</div>
-                        <div id="adCountdown" style="font-size:18px;font-weight:bold;color:#e50914;">5</div>
+                        <div id="adCountdown" style="font-size:18px;font-weight:bold;color:#e50914;">${adDuration}</div>
                     </div>
                 `;
                 
                 // Geri sayım
-                let countdown = 5;
+                let countdown = adDuration;
                 const countdownElement = document.getElementById('adCountdown');
                 const countdownInterval = setInterval(function() {
                     countdown--;
@@ -693,25 +813,55 @@
                 }, 1000);
             }
             
+            // Reklam göster
+            function showAd() {
+                if (currentAdCount >= totalAds) return;
+                
+                currentAdCount++;
+                currentAd.textContent = currentAdCount;
+                adNumber.textContent = currentAdCount;
+                
+                // Videoyu duraklat
+                isPlaying = false;
+                clearInterval(videoTimer);
+                
+                // Adsgram modalını göster ve reklamı yükle
+                adsgramModal.style.display = 'flex';
+                loadAdsgramAd();
+            }
+            
             // Modalı kapatma fonksiyonu
             function closeAdsgramModal() {
                 adsgramModal.style.display = 'none';
-                playOverlay.style.display = 'none';
-                videoContainer.classList.remove('hidden-video');
+                adsgramContainer.innerHTML = '';
                 
-                // Video otomatik olarak başlasın
-                const iframe = videoContainer.querySelector('iframe');
-                const currentSrc = iframe.src;
-                if (!currentSrc.includes('autoplay')) {
-                    iframe.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                // Video devam etsin
+                isPlaying = true;
+                startVideoTimer();
+                
+                // İlk reklamdan sonra play overlay'ı gizle
+                if (currentAdCount === 1) {
+                    playOverlay.style.display = 'none';
+                    videoContainer.classList.remove('hidden-video');
+                    
+                    // Video otomatik olarak başlasın
+                    const currentSrc = mainVideo.src;
+                    if (!currentSrc.includes('autoplay')) {
+                        mainVideo.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                    }
                 }
             }
             
             // Play butonuna tıklanınca
             playOverlay.addEventListener('click', function() {
-                // Adsgram modalını göster ve reklamı yükle
-                adsgramModal.style.display = 'flex';
-                loadAdsgramAd();
+                // İlk 1 dakika video göster
+                isPlaying = true;
+                startVideoTimer();
+                
+                // 1 dakika sonra ilk reklamı göster
+                setTimeout(function() {
+                    showAd();
+                }, 60 * 1000); // 1 dakika
             });
             
             // Kapat butonuna tıklanınca
@@ -723,6 +873,9 @@
                     closeAdsgramModal();
                 }
             });
+            
+            // İlk ilerleme çubuğunu güncelle
+            updateProgressBar();
         });
     </script>
 </body>
