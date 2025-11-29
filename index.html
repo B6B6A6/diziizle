@@ -229,6 +229,9 @@
             width: 100%;
             height: 450px;
             background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         .hidden-video {
@@ -594,13 +597,8 @@
                 <button class="close-adsgram" id="closeAdsgram">&times;</button>
             </div>
             <div class="adsgram-video">
-                <!-- Adsgram reklam videosu buraya gelecek -->
-                <iframe 
-                    src="https://www.example-adsgram-video.com/embed" 
-                    frameborder="0" 
-                    allowfullscreen 
-                    style="width:100%;height:100%;">
-                </iframe>
+                <!-- Adsgram reklamı burada gösterilecek -->
+                <div id="adsgram-ad-container"></div>
             </div>
         </div>
     </div>
@@ -625,37 +623,100 @@
             const videoContainer = document.getElementById('videoContainer');
             const adsgramModal = document.getElementById('adsgramModal');
             const closeAdsgram = document.getElementById('closeAdsgram');
+            const adsgramContainer = document.getElementById('adsgram-ad-container');
+            
+            // Adsgram reklamını yükleme fonksiyonu
+            function loadAdsgramAd() {
+                // Adsgram reklam scriptini temizle
+                adsgramContainer.innerHTML = '';
+                
+                // Adsgram reklam scriptini oluştur
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://adsgram.com/ads/17997/embed.js';
+                script.async = true;
+                
+                // Script yüklendikten sonra
+                script.onload = function() {
+                    console.log('Adsgram reklamı başarıyla yüklendi');
+                    
+                    // Reklam bitişini dinle
+                    setTimeout(() => {
+                        const adFrame = adsgramContainer.querySelector('iframe');
+                        if (adFrame) {
+                            adFrame.onload = function() {
+                                // Reklam bittiğinde otomatik kapat
+                                setTimeout(closeAdsgramModal, 20000); // 20 saniye sonra kapat
+                            };
+                        }
+                    }, 1000);
+                };
+                
+                // Script yükleme hatası
+                script.onerror = function() {
+                    console.log('Adsgram yüklenemedi, alternatif reklam gösteriliyor');
+                    showAlternativeAd();
+                };
+                
+                adsgramContainer.appendChild(script);
+            }
+            
+            // Alternatif reklam gösterimi
+            function showAlternativeAd() {
+                adsgramContainer.innerHTML = `
+                    <div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg, #1a1f2e 0%, #2a3245 100%);color:white;padding:20px;text-align:center;">
+                        <div style="font-size:32px;margin-bottom:20px;">🎬</div>
+                        <div style="font-size:24px;margin-bottom:15px;font-weight:bold;">Reklam</div>
+                        <div style="margin-bottom:25px;font-size:16px;opacity:0.8;">Bu alanda Adsgram reklamı gösterilecek</div>
+                        <div style="margin-bottom:15px;font-size:14px;opacity:0.7;">UnitID: 17997</div>
+                        <div style="margin-bottom:20px;font-size:14px;">Reklam otomatik olarak kapanacak</div>
+                        <div id="adCountdown" style="font-size:18px;font-weight:bold;color:#e50914;">5</div>
+                    </div>
+                `;
+                
+                // Geri sayım
+                let countdown = 5;
+                const countdownElement = document.getElementById('adCountdown');
+                const countdownInterval = setInterval(function() {
+                    countdown--;
+                    countdownElement.textContent = countdown;
+                    
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        closeAdsgramModal();
+                    }
+                }, 1000);
+            }
+            
+            // Modalı kapatma fonksiyonu
+            function closeAdsgramModal() {
+                adsgramModal.style.display = 'none';
+                playOverlay.style.display = 'none';
+                videoContainer.classList.remove('hidden-video');
+                
+                // Video otomatik olarak başlasın
+                const iframe = videoContainer.querySelector('iframe');
+                const currentSrc = iframe.src;
+                if (!currentSrc.includes('autoplay')) {
+                    iframe.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                }
+            }
             
             // Play butonuna tıklanınca
             playOverlay.addEventListener('click', function() {
-                // Adsgram modalını göster
+                // Adsgram modalını göster ve reklamı yükle
                 adsgramModal.style.display = 'flex';
-                
-                // Adsgram videosu bittiğinde veya kapatıldığında ana videoyu göster
-                closeAdsgram.addEventListener('click', function() {
-                    adsgramModal.style.display = 'none';
-                    playOverlay.style.display = 'none';
-                    videoContainer.classList.remove('hidden-video');
-                    
-                    // Video otomatik olarak başlasın
-                    const iframe = videoContainer.querySelector('iframe');
-                    const currentSrc = iframe.src;
-                    iframe.src = currentSrc + '&autoplay=1';
-                });
-                
-                // Modal dışına tıklanınca kapat
-                adsgramModal.addEventListener('click', function(e) {
-                    if (e.target === adsgramModal) {
-                        adsgramModal.style.display = 'none';
-                        playOverlay.style.display = 'none';
-                        videoContainer.classList.remove('hidden-video');
-                        
-                        // Video otomatik olarak başlasın
-                        const iframe = videoContainer.querySelector('iframe');
-                        const currentSrc = iframe.src;
-                        iframe.src = currentSrc + '&autoplay=1';
-                    }
-                });
+                loadAdsgramAd();
+            });
+            
+            // Kapat butonuna tıklanınca
+            closeAdsgram.addEventListener('click', closeAdsgramModal);
+            
+            // Modal dışına tıklanınca kapat
+            adsgramModal.addEventListener('click', function(e) {
+                if (e.target === adsgramModal) {
+                    closeAdsgramModal();
+                }
             });
         });
     </script>
