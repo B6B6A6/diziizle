@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Esref Rüya - 22. Bölüm | DiziTV.GT.TC</title>
-
-    <!-- AdsGram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-     
+    <title>DiziTV - Tüm Diziler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -56,9 +52,6 @@
             background-color: #1a1f2e;
             padding: 15px 0;
             border-bottom: 1px solid #2a3245;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
         
         nav ul {
@@ -76,61 +69,158 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         
         nav ul li a:hover {
             color: #e50914;
         }
         
-        /* Main Content */
-        .episode-container {
+        /* Search Bar */
+        .search-container {
             display: flex;
-            flex-wrap: wrap;
-            margin: 30px 0;
-            gap: 30px;
+            justify-content: center;
+            margin: 20px 0;
         }
         
-        .video-section {
-            flex: 2;
-            min-width: 300px;
-        }
-        
-        .sidebar {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .video-player {
+        .search-box {
+            display: flex;
             width: 100%;
-            background-color: #000;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 4px 0 0 4px;
+            background-color: #2a3245;
+            color: #e1e1e1;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 0 20px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .search-box button:hover {
+            background-color: #b80710;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #2a3245;
+            border-radius: 0 0 4px 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #3a4255;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-result-item:hover {
+            background-color: #3a4255;
+        }
+        
+        .search-result-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        
+        .search-result-info {
+            flex: 1;
+        }
+        
+        .search-result-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .search-result-meta {
+            font-size: 12px;
+            color: #8a8d93;
+        }
+        
+        /* Main Content */
+        .main-title {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 32px;
+            color: #ffffff;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #8a8d93;
+            font-size: 18px;
+            display: none;
+        }
+        
+        .series-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .series-card {
+            background-color: #1a1f2e;
             border-radius: 8px;
             overflow: hidden;
-            margin-bottom: 20px;
-            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
-        .video-wrapper {
-            position: relative;
+        .series-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .series-poster {
             width: 100%;
-            height: 0;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 240px;
+            background-color: #2a3245;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a8d93;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
         }
         
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .series-poster img {
             width: 100%;
             height: 100%;
-            border: none;
-            border-radius: 8px;
+            object-fit: cover;
+            transition: transform 0.5s;
         }
         
-        /* Play Button Overlay */
-        .play-overlay {
+        .series-card:hover .series-poster img {
+            transform: scale(1.05);
+        }
+        
+        .series-poster .overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -138,315 +228,65 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 10;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
-        .play-overlay:hover {
-            background: rgba(0, 0, 0, 0.6);
+        .series-card:hover .series-poster .overlay {
+            opacity: 1;
         }
         
-        .play-icon {
-            width: 80px;
-            height: 80px;
+        .play-button {
             background-color: #e50914;
+            color: white;
+            border: none;
             border-radius: 50%;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
-            transition: transform 0.3s;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
         }
         
-        .play-overlay:hover .play-icon {
+        .play-button:hover {
             transform: scale(1.1);
-        }
-        
-        .play-icon i {
-            color: white;
-            font-size: 30px;
-            margin-left: 5px;
-        }
-        
-        .play-text {
-            color: white;
-            font-size: 18px;
-            font-weight: 500;
-        }
-        
-        /* Adsgram Modal */
-        .adsgram-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .adsgram-content {
-            background: #1a1f2e;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        
-        .adsgram-header {
-            padding: 20px;
-            background: #2a3245;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .adsgram-title {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .close-adsgram {
-            background: none;
-            border: none;
-            color: #8a8d93;
-            font-size: 24px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        
-        .close-adsgram:hover {
-            color: #e50914;
-        }
-        
-        .adsgram-video {
-            width: 100%;
-            height: 450px;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .hidden-video {
-            display: none;
-        }
-        
-        .video-info {
-            background-color: #1a1f2e;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .episode-title {
-            font-size: 24px;
-            color: #ffffff;
-            margin-bottom: 10px;
-        }
-        
-        .episode-meta {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            color: #8a8d93;
-            font-size: 14px;
-        }
-        
-        .episode-description {
-            margin-bottom: 20px;
-            line-height: 1.7;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-        }
-        
-        .primary-btn {
-            background-color: #e50914;
-            color: white;
-        }
-        
-        .primary-btn:hover {
             background-color: #b80710;
         }
         
-        .secondary-btn {
-            background-color: #2a3245;
-            color: #e1e1e1;
+        .series-info {
+            padding: 15px 10px;
+            text-align: center;
         }
         
-        .secondary-btn:hover {
-            background-color: #3a4255;
-        }
-        
-        .social-share {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .social-btn {
-            width: 40px;
+        .series-title {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #ffffff;
             height: 40px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            transition: transform 0.3s;
         }
         
-        .social-btn:hover {
-            transform: translateY(-3px);
-        }
-        
-        .facebook {
-            background-color: #3b5998;
-        }
-        
-        .twitter {
-            background-color: #1da1f2;
-        }
-        
-        .whatsapp {
-            background-color: #25d366;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar-section {
-            background-color: #1a1f2e;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .sidebar-title {
-            font-size: 18px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #2a3245;
-            color: #ffffff;
-        }
-        
-        .episode-list {
-            list-style: none;
-        }
-        
-        .episode-list li {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #2a3245;
-        }
-        
-        .episode-list li:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-        
-        .episode-list a {
-            color: #e1e1e1;
-            text-decoration: none;
-            display: flex;
-            justify-content: space-between;
-            transition: color 0.3s;
-        }
-        
-        .episode-list a:hover {
-            color: #e50914;
-        }
-        
-        .recommended-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-        }
-        
-        .recommended-item {
-            border-radius: 4px;
-            overflow: hidden;
-            transition: transform 0.3s;
-        }
-        
-        .recommended-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .recommended-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            background-color: #2a3245;
-            border-radius: 4px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 6px;
-            background-color: #e50914;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
+        .series-meta {
+            font-size: 12px;
             color: #8a8d93;
-            margin-bottom: 10px;
-        }
-        
-        /* Reklam Bilgisi */
-        .ad-info {
-            background-color: #2a3245;
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            margin-bottom: 5px;
         }
         
-        .ad-count {
-            font-size: 14px;
-            color: #e1e1e1;
+        .rating {
+            color: #ffc107;
         }
         
-        .ad-timer {
-            font-size: 14px;
-            color: #e50914;
-            font-weight: bold;
+        .series-description {
+            display: none;
         }
         
         /* Footer */
@@ -461,12 +301,12 @@
         .footer-links {
             display: flex;
             justify-content: center;
-            gap: 20px;
             margin-bottom: 20px;
         }
         
         .footer-links a {
             color: #8a8d93;
+            margin: 0 15px;
             text-decoration: none;
             transition: color 0.3s;
         }
@@ -482,20 +322,8 @@
         
         /* Responsive Design */
         @media (max-width: 768px) {
-            .video-wrapper {
-                padding-bottom: 75%; /* Mobilde daha yüksek */
-            }
-            
-            .episode-container {
-                flex-direction: column;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .btn {
-                justify-content: center;
+            .series-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
             
             nav ul {
@@ -505,18 +333,19 @@
             nav ul li {
                 margin: 5px 10px;
             }
-            
-            .adsgram-video {
-                height: 300px;
+        }
+        
+        @media (max-width: 480px) {
+            .series-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             }
             
-            .play-icon {
-                width: 60px;
-                height: 60px;
-            }
-            
-            .play-icon i {
+            .main-title {
                 font-size: 24px;
+            }
+            
+            .series-poster {
+                height: 200px;
             }
         }
     </style>
@@ -524,7 +353,7 @@
 <body>
     <header>
         <div class="container">
-            <div class="logo">DiziTV.GT.TC</div>
+            <div class="logo">DiziTV</div>
             <div class="tagline">En iyi diziler burada</div>
         </div>
     </header>
@@ -532,350 +361,342 @@
     <nav>
         <div class="container">
             <ul>
-                <li><a href="#"><i class="fas fa-home"></i> Ana Sayfa</a></li>
-                <li><a href="#"><i class="fas fa-tv"></i> Türk Dizileri</a></li>
-                <li><a href="#"><i class="fas fa-globe"></i> Yabanci Diziler</a></li>
-                <li><a href="#"><i class="fas fa-film"></i> Filimler</a></li>
+                <li><a href="#">Ana Sayfa</a></li>
+                <li><a href="#">Türk Dizileri</a></li>
+                <li><a href="#">Yabanci Diziler</a></li>
+                <li><a href="#">Filimler</a></li>
             </ul>
         </div>
     </nav>
     
+    <div class="container">
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Dizi ara...">
+                <button id="searchButton"><i class="fas fa-search"></i></button>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+    
     <main class="container">
-        <div class="episode-container">
-            <div class="video-section">
-                <div class="video-player">
-                    <div class="video-wrapper">
-                        <!-- Play Butonu Overlay -->
-                        <div class="play-overlay" id="playOverlay">
-                            <div class="play-icon">
+        <h1 class="main-title">Tüm Diziler</h1>
+        
+        <div class="no-results" id="noResults">
+            <i class="fas fa-search fa-2x" style="margin-bottom: 15px;"></i>
+            <p>Aradığınız kriterlere uygun dizi bulunamadı.</p>
+        </div>
+        
+        <div class="series-grid" id="seriesGrid">
+            
+            
+            <!-- Dizi 1 -->
+            <div class="series-card" data-title="Arka Sokaklar" data-genre="drama,suç">
+                <a href="/arkasokaklar/Arka-sokaklar-index.html?dizi=breaking-bad">
+                    <div class="series-poster">
+                        <img src="/arkasokaklar/ArkaSokaklar.jpg" alt="Arka Sokaklar">
+                        <div class="overlay">
+                            <div class="play-button">
                                 <i class="fas fa-play"></i>
                             </div>
-                            <div class="play-text">Oynat</div>
-                        </div>
-                        
-                        <!-- Gizli Video -->
-                        <div id="videoContainer" class="hidden-video">
-                            <!-- Ok.ru video embed kodu -->
-                            <iframe 
-                                src="//ok.ru/videoembed/7724644043294?nochat=1" 
-                                title="Esref Rüya 22. Bölüm" 
-                                frameborder="0" 
-                                allow="autoplay" 
-                                allowfullscreen
-                                id="mainVideo">
-                            </iframe>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Reklam Bilgi Paneli -->
-                <div class="ad-info">
-                    <div class="ad-count">Reklam: <span id="currentAd">0</span>/5</div>
-                    <div class="ad-timer">Sonraki reklam: <span id="nextAdTimer">01:00</span></div>
-                </div>
-                
-                <!-- İlerleme Çubuğu -->
-                <div class="progress-info">
-                    <span>Video İlerlemesi</span>
-                    <span id="videoProgress">0:00 / 30:00</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                
-                <div class="video-info">
-                    <h1 class="episode-title">Esref Rüya - 22. Bölüm</h1>
-                    <div class="episode-meta">
-                        <span><i class="far fa-calendar"></i> 15 Ekim 2023</span>
-                        <span><i class="far fa-clock"></i> 120 dk</span>
-                        <span><i class="fas fa-eye"></i> 1.2M görüntülenme</span>
-                    </div>
-                    <div class="episode-description">
-                        <p>Eşref, rüyalarının gerçek olmaya başlamasıyla hayatının kontrolünü kaybettiğini hisseder. Bu bölümde, geçmişte yaşadığı travmatik bir olayın izlerini taşıyan rüyaları onu tehlikeli bir maceraya sürükler. Ailesi ve arkadaşları, Eşref'in giderek artan paranoyasıyla başa çıkmaya çalışırken, gerçeklik ile rüya arasındaki çizgi giderek bulanıklaşır.</p>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn primary-btn">
-                            <i class="fas fa-list"></i>
-                            Tüm bölümler
-                        </button>
-                        <button class="btn secondary-btn">
-                            <i class="fas fa-heart"></i>
-                            Favorilere Ekle
-                        </button>
-                        <button class="btn secondary-btn">
-                            <i class="fas fa-download"></i>
-                            İndir
-                        </button>
-                    </div>
-                    <div class="social-share">
-                        <a href="#" class="social-btn facebook">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-btn twitter">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-btn whatsapp">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Arka Sokaklar</h3>
+                    <div class="series-meta">
+                        <span>Polisiye, Suç</span>
+                        <span class="rating"><i class="fas fa-star"></i> 9.5</span>
                     </div>
                 </div>
             </div>
             
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">Bölümler</h3>
-                    <ul class="episode-list">
-                        <li><a href="#">22. Bölüm <span>15 Eki</span></a></li>
-                        <li><a href="#">21. Bölüm <span>8 Eki</span></a></li>
-                        <li><a href="#">20. Bölüm <span>1 Eki</span></a></li>
-                        <li><a href="#">19. Bölüm <span>24 Eyl</span></a></li>
-                        <li><a href="#">18. Bölüm <span>17 Eyl</span></a></li>
-                        <li><a href="#">Tüm Bölümler <i class="fas fa-chevron-right"></i></a></li>
-                    </ul>
+            <!-- Dizi 2 -->
+            <div class="series-card" data-title="game of thrones" data-genre="fantastik,dram">
+                <a href="dizi-detay.html?dizi=game-of-thrones">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg" alt="Game of Thrones">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Game of Thrones</h3>
+                    <div class="series-meta">
+                        <span>Fantastik, Dram</span>
+                        <span class="rating"><i class="fas fa-star"></i> 9.3</span>
+                    </div>
                 </div>
-                
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">Benzer Diziler</h3>
-                    <div class="recommended-grid">
-                        <div class="recommended-item">
-                            <img src="https://via.placeholder.com/120x160/2a3245/ffffff?text=Dizi+1" alt="Dizi 1">
+            </div>
+            
+            <!-- Dizi 3 -->
+            <div class="series-card" data-title="stranger things" data-genre="bilim kurgu,korku">
+                <a href="dizi-detay.html?dizi=stranger-things">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg" alt="Stranger Things">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
                         </div>
-                        <div class="recommended-item">
-                            <img src="https://via.placeholder.com/120x160/2a3245/ffffff?text=Dizi+2" alt="Dizi 2">
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Stranger Things</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Korku</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 4 -->
+            <div class="series-card" data-title="the witcher" data-genre="fantastik,aksiyon">
+                <a href="dizi-detay.html?dizi=the-witcher">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/7vjaCdMw15FEbXyLQTVa04URsPm.jpg" alt="The Witcher">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
                         </div>
-                        <div class="recommended-item">
-                            <img src="https://via.placeholder.com/120x160/2a3245/ffffff?text=Dizi+3" alt="Dizi 3">
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Witcher</h3>
+                    <div class="series-meta">
+                        <span>Fantastik, Aksiyon</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.2</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 5 -->
+            <div class="series-card" data-title="the mandalorian" data-genre="bilim kurgu,macera">
+                <a href="dizi-detay.html?dizi=the-mandalorian">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/sWgBv7LV2PRoQgkxwlibdGXKz1S.jpg" alt="The Mandalorian">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
                         </div>
-                        <div class="recommended-item">
-                            <img src="https://via.placeholder.com/120x160/2a3245/ffffff?text=Dizi+4" alt="Dizi 4">
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Mandalorian</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Macera</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 6 -->
+            <div class="series-card" data-title="the crown" data-genre="tarih,dram">
+                <a href="dizi-detay.html?dizi=the-crown">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/1M876KPjulVwppEpldhdc8V4o68.jpg" alt="The Crown">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
                         </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Crown</h3>
+                    <div class="series-meta">
+                        <span>Tarih, Dram</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 7 -->
+            <div class="series-card" data-title="dark" data-genre="bilim kurgu,gizem">
+                <a href="dizi-detay.html?dizi=dark">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/5Lo6WG2I6QqC8Ep6BJyS7xGQ3Bp.jpg" alt="Dark">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Dark</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Gizem</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 8 -->
+            <div class="series-card" data-title="the office" data-genre="komedi">
+                <a href="dizi-detay.html?dizi=the-office">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/qWnJzyZhyy74gjpSjIXWmuk0ifX.jpg" alt="The Office">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Office</h3>
+                    <div class="series-meta">
+                        <span>Komedi</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.9</span>
                     </div>
                 </div>
             </div>
         </div>
     </main>
     
-    <!-- Adsgram Modal -->
-    <div class="adsgram-modal" id="adsgramModal">
-        <div class="adsgram-content">
-            <div class="adsgram-header">
-                <div class="adsgram-title">Reklam - <span id="adNumber">1</span>/5</div>
-                <button class="close-adsgram" id="closeAdsgram">&times;</button>
-            </div>
-            <div class="adsgram-video">
-                <!-- Adsgram reklamı burada gösterilecek -->
-                <div id="adsgram-ad-container"></div>
-            </div>
-        </div>
-    </div>
-    
     <footer>
         <div class="container">
-            <div class="footer-links">
-                <a href="#">Hakkımızda</a>
-                <a href="#">İletişim</a>
-                <a href="#">Gizlilik Politikası</a>
-                <a href="#">Kullanım Şartları</a>
-            </div>
             <div class="copyright">
-                &copy; 2023 DiziTV.GT.TC - Tüm hakları saklıdır.
+                &copy; 2023 DiziTV.GT.TC
             </div>
         </div>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const playOverlay = document.getElementById('playOverlay');
-            const videoContainer = document.getElementById('videoContainer');
-            const mainVideo = document.getElementById('mainVideo');
-            const adsgramModal = document.getElementById('adsgramModal');
-            const closeAdsgram = document.getElementById('closeAdsgram');
-            const adsgramContainer = document.getElementById('adsgram-ad-container');
-            const progressBar = document.getElementById('progressBar');
-            const videoProgress = document.getElementById('videoProgress');
-            const currentAd = document.getElementById('currentAd');
-            const nextAdTimer = document.getElementById('nextAdTimer');
-            const adNumber = document.getElementById('adNumber');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+            const seriesGrid = document.getElementById('seriesGrid');
+            const noResults = document.getElementById('noResults');
+            const seriesCards = document.querySelectorAll('.series-card');
             
-            // Video ve reklam ayarları
-            let videoDuration = 30 * 60; // 30 dakika (saniye cinsinden)
-            let adInterval = 6 * 60; // 6 dakikada bir reklam (saniye cinsinden)
-            let adDuration = 30; // Reklam süresi (saniye)
-            let totalAds = 5; // Toplam reklam sayısı
-            let currentAdCount = 0;
-            let videoTime = 0;
-            let isPlaying = false;
-            let videoTimer;
-            let adTimer;
-            
-            // İlerleme çubuğunu güncelleme
-            function updateProgressBar() {
-                const progressPercent = (videoTime / videoDuration) * 100;
-                progressBar.style.width = `${progressPercent}%`;
+            // Arama fonksiyonu
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
                 
-                const currentMinutes = Math.floor(videoTime / 60);
-                const currentSeconds = Math.floor(videoTime % 60);
-                const totalMinutes = Math.floor(videoDuration / 60);
-                const totalSeconds = Math.floor(videoDuration % 60);
+                if (searchTerm === '') {
+                    // Arama kutusu boşsa tüm dizileri göster
+                    seriesCards.forEach(card => {
+                        card.style.display = 'block';
+                    });
+                    noResults.style.display = 'none';
+                    searchResults.style.display = 'none';
+                    return;
+                }
                 
-                videoProgress.textContent = 
-                    `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${totalMinutes}:${totalSeconds < 10 ? '0' : ''}${totalSeconds}`;
+                // Arama sonuçlarını filtrele
+                let foundResults = false;
+                let resultCount = 0;
                 
-                // Sonraki reklam için geri sayım
-                const timeToNextAd = adInterval - (videoTime % adInterval);
-                const minutesToAd = Math.floor(timeToNextAd / 60);
-                const secondsToAd = Math.floor(timeToNextAd % 60);
-                
-                nextAdTimer.textContent = 
-                    `${minutesToAd}:${secondsToAd < 10 ? '0' : ''}${secondsToAd}`;
-            }
-            
-            // Video zamanlayıcısını başlat
-            function startVideoTimer() {
-                if (videoTimer) clearInterval(videoTimer);
-                
-                videoTimer = setInterval(function() {
-                    if (isPlaying && videoTime < videoDuration) {
-                        videoTime++;
-                        updateProgressBar();
-                        
-                        // Reklam zamanı kontrolü
-                        if (videoTime > 0 && videoTime % adInterval === 0 && currentAdCount < totalAds) {
-                            showAd();
-                        }
-                    } else if (videoTime >= videoDuration) {
-                        clearInterval(videoTimer);
-                        isPlaying = false;
-                    }
-                }, 1000);
-            }
-            
-            // Adsgram reklamını yükleme fonksiyonu
-            function loadAdsgramAd() {
-                // Adsgram reklam scriptini temizle
-                adsgramContainer.innerHTML = '';
-                
-                // Adsgram reklam scriptini oluştur
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = 'https://adsgram.com/ads/ 18429/embed.js';
-                script.async = true;
-                
-                // Script yüklendikten sonra
-                script.onload = function() {
-                    console.log('Adsgram reklamı başarıyla yüklendi');
+                seriesCards.forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const genre = card.getAttribute('data-genre');
                     
-                    // Reklam bitişini dinle
-                    setTimeout(() => {
-                        const adFrame = adsgramContainer.querySelector('iframe');
-                        if (adFrame) {
-                            adFrame.onload = function() {
-                                // Reklam bittiğinde otomatik kapat
-                                setTimeout(closeAdsgramModal, adDuration * 1000);
-                            };
-                        }
-                    }, 1000);
-                };
-                
-                // Script yükleme hatası
-                script.onerror = function() {
-                    console.log('Adsgram yüklenemedi, alternatif reklam gösteriliyor');
-                    showAlternativeAd();
-                };
-                
-                adsgramContainer.appendChild(script);
-            }
-            
-            // Alternatif reklam gösterimi
-            function showAlternativeAd() {
-                adsgramContainer.innerHTML = `
-                    <div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg, #1a1f2e 0%, #2a3245 100%);color:white;padding:20px;text-align:center;">
-                        <div style="font-size:32px;margin-bottom:20px;">🎬</div>
-                        <div style="font-size:24px;margin-bottom:15px;font-weight:bold;">Reklam ${currentAdCount}/${totalAds}</div>
-                        <div style="margin-bottom:25px;font-size:16px;opacity:0.8;">Bu alanda Adsgram reklamı gösterilecek</div>
-                        <div style="margin-bottom:15px;font-size:14px;opacity:0.7;">UnitID: 18429</div>
-                        <div style="margin-bottom:20px;font-size:14px;">Reklam otomatik olarak kapanacak</div>
-                        <div id="adCountdown" style="font-size:18px;font-weight:bold;color:#e50914;">${adDuration}</div>
-                    </div>
-                `;
-                
-                // Geri sayım
-                let countdown = adDuration;
-                const countdownElement = document.getElementById('adCountdown');
-                const countdownInterval = setInterval(function() {
-                    countdown--;
-                    countdownElement.textContent = countdown;
-                    
-                    if (countdown <= 0) {
-                        clearInterval(countdownInterval);
-                        closeAdsgramModal();
+                    if (title.includes(searchTerm) || genre.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        foundResults = true;
+                        resultCount++;
+                    } else {
+                        card.style.display = 'none';
                     }
-                }, 1000);
+                });
+                
+                // Sonuç yoksa mesaj göster
+                if (!foundResults) {
+                    noResults.style.display = 'block';
+                } else {
+                    noResults.style.display = 'none';
+                }
+                
+                // Arama önerilerini güncelle
+                updateSearchSuggestions(searchTerm);
             }
             
-            // Reklam göster
-            function showAd() {
-                if (currentAdCount >= totalAds) return;
+            // Arama önerilerini güncelle
+            function updateSearchSuggestions(searchTerm) {
+                if (searchTerm === '') {
+                    searchResults.style.display = 'none';
+                    return;
+                }
                 
-                currentAdCount++;
-                currentAd.textContent = currentAdCount;
-                adNumber.textContent = currentAdCount;
+                const suggestions = [];
                 
-                // Videoyu duraklat
-                isPlaying = false;
-                clearInterval(videoTimer);
-                
-                // Adsgram modalını göster ve reklamı yükle
-                adsgramModal.style.display = 'flex';
-                loadAdsgramAd();
-            }
-            
-            // Modalı kapatma fonksiyonu
-            function closeAdsgramModal() {
-                adsgramModal.style.display = 'none';
-                adsgramContainer.innerHTML = '';
-                
-                // Video devam etsin
-                isPlaying = true;
-                startVideoTimer();
-                
-                // İlk reklamdan sonra play overlay'ı gizle
-                if (currentAdCount === 1) {
-                    playOverlay.style.display = 'none';
-                    videoContainer.classList.remove('hidden-video');
+                seriesCards.forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const genre = card.getAttribute('data-genre');
+                    const seriesTitle = card.querySelector('.series-title').textContent;
+                    const imgSrc = card.querySelector('img').src;
                     
-                    // Video otomatik olarak başlasın
-                    const currentSrc = mainVideo.src;
-                    if (!currentSrc.includes('autoplay')) {
-                        mainVideo.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                    if (title.includes(searchTerm) || genre.includes(searchTerm)) {
+                        suggestions.push({
+                            title: seriesTitle,
+                            img: imgSrc,
+                            genre: card.querySelector('.series-meta span:first-child').textContent
+                        });
                     }
+                });
+                
+                // Önerileri göster
+                if (suggestions.length > 0) {
+                    searchResults.innerHTML = '';
+                    suggestions.forEach(suggestion => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.innerHTML = `
+                            <img src="${suggestion.img}" alt="${suggestion.title}">
+                            <div class="search-result-info">
+                                <div class="search-result-title">${suggestion.title}</div>
+                                <div class="search-result-meta">${suggestion.genre}</div>
+                            </div>
+                        `;
+                        resultItem.addEventListener('click', function() {
+                            searchInput.value = suggestion.title;
+                            searchResults.style.display = 'none';
+                            performSearch();
+                        });
+                        searchResults.appendChild(resultItem);
+                    });
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
                 }
             }
             
-            // Play butonuna tıklanınca
-            playOverlay.addEventListener('click', function() {
-                // İlk 1 dakika video göster
-                isPlaying = true;
-                startVideoTimer();
-                
-                // 1 dakika sonra ilk reklamı göster
-                setTimeout(function() {
-                    showAd();
-                }, 60 * 1000); // 1 dakika
+            // Olay dinleyicileri
+            searchInput.addEventListener('input', performSearch);
+            
+            searchButton.addEventListener('click', function() {
+                performSearch();
+                searchResults.style.display = 'none';
             });
             
-            // Kapat butonuna tıklanınca
-            closeAdsgram.addEventListener('click', closeAdsgramModal);
-            
-            // Modal dışına tıklanınca kapat
-            adsgramModal.addEventListener('click', function(e) {
-                if (e.target === adsgramModal) {
-                    closeAdsgramModal();
+            searchInput.addEventListener('focus', function() {
+                if (searchInput.value.trim() !== '') {
+                    updateSearchSuggestions(searchInput.value.trim());
                 }
             });
             
-            // İlk ilerleme çubuğunu güncelle
-            updateProgressBar();
+            // Dışarı tıklandığında arama sonuçlarını gizle
+            document.addEventListener('click', function(e) {
+                if (!searchResults.contains(e.target) && e.target !== searchInput) {
+                    searchResults.style.display = 'none';
+                }
+            });
+            
+            // Enter tuşu ile arama
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                    searchResults.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>
