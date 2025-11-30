@@ -1,1 +1,701 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiziTV - Tüm Diziler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0f1419;
+            color: #e1e1e1;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: #1a1f2e;
+            padding: 20px 0;
+            border-bottom: 2px solid #2a3245;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e50914;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            text-align: center;
+            color: #8a8d93;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        
+        /* Navigation */
+        nav {
+            background-color: #1a1f2e;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a3245;
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin: 0 15px;
+        }
+        
+        nav ul li a {
+            color: #e1e1e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #e50914;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .search-box {
+            display: flex;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 4px 0 0 4px;
+            background-color: #2a3245;
+            color: #e1e1e1;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 0 20px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .search-box button:hover {
+            background-color: #b80710;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #2a3245;
+            border-radius: 0 0 4px 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #3a4255;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-result-item:hover {
+            background-color: #3a4255;
+        }
+        
+        .search-result-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        
+        .search-result-info {
+            flex: 1;
+        }
+        
+        .search-result-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .search-result-meta {
+            font-size: 12px;
+            color: #8a8d93;
+        }
+        
+        /* Main Content */
+        .main-title {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 32px;
+            color: #ffffff;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #8a8d93;
+            font-size: 18px;
+            display: none;
+        }
+        
+        .series-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .series-card {
+            background-color: #1a1f2e;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .series-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .series-poster {
+            width: 100%;
+            height: 240px;
+            background-color: #2a3245;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a8d93;
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .series-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .series-card:hover .series-poster img {
+            transform: scale(1.05);
+        }
+        
+        .series-poster .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .series-card:hover .series-poster .overlay {
+            opacity: 1;
+        }
+        
+        .play-button {
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        
+        .play-button:hover {
+            transform: scale(1.1);
+            background-color: #b80710;
+        }
+        
+        .series-info {
+            padding: 15px 10px;
+            text-align: center;
+        }
+        
+        .series-title {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #ffffff;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .series-meta {
+            font-size: 12px;
+            color: #8a8d93;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .rating {
+            color: #ffc107;
+        }
+        
+        .series-description {
+            display: none;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #1a1f2e;
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid #2a3245;
+            margin-top: 30px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: #8a8d93;
+            margin: 0 15px;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #e50914;
+        }
+        
+        .copyright {
+            color: #8a8d93;
+            font-size: 14px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .series-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+            }
+            
+            nav ul li {
+                margin: 5px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .series-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            
+            .main-title {
+                font-size: 24px;
+            }
+            
+            .series-poster {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">DiziTV</div>
+            <div class="tagline">En iyi diziler burada</div>
+        </div>
+    </header>
+    
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="/diziizle/index.html">Türk Dizileri</a></li>
+                <li><a href="/diziizle/yabanci.html">Yabanci Diziler</a></li>
+                <li><a href="/diziizle/film.html ">Filimler</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Dizi ara...">
+                <button id="searchButton"><i class="fas fa-search"></i></button>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        </div>
+    </div>
+    
+    <main class="container">
+        <h1 class="main-title">Tüm Diziler</h1>
+        
+        <div class="no-results" id="noResults">
+            <i class="fas fa-search fa-2x" style="margin-bottom: 15px;"></i>
+            <p>Aradığınız kriterlere uygun dizi bulunamadı.</p>
+        </div>
+        
+        <div class="series-grid" id="seriesGrid">
+            
+            
+            <!-- Dizi 1 -->
+            <div class="series-card" data-title="Esref Ruya" data-genre="drama,suç">
+                <a href="/diziizle/esrefruya/index.html">
+                    <div class="series-poster">
+                        <img src="/diziizle/esrefruya/esrefruya.jpg" alt="Esref Ruya">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Esref Ruya</h3>
+                    <div class="series-meta">
+                        <span>Polisiye, Suç</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 2 -->
+            <div class="series-card" data-title="game of thrones" data-genre="fantastik,dram">
+                <a href="dizi-detay.html?dizi=game-of-thrones">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg" alt="Game of Thrones">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Game of Thrones</h3>
+                    <div class="series-meta">
+                        <span>Fantastik, Dram</span>
+                        <span class="rating"><i class="fas fa-star"></i> 9.3</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 3 -->
+            <div class="series-card" data-title="stranger things" data-genre="bilim kurgu,korku">
+                <a href="dizi-detay.html?dizi=stranger-things">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg" alt="Stranger Things">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Stranger Things</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Korku</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 4 -->
+            <div class="series-card" data-title="the witcher" data-genre="fantastik,aksiyon">
+                <a href="dizi-detay.html?dizi=the-witcher">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/7vjaCdMw15FEbXyLQTVa04URsPm.jpg" alt="The Witcher">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Witcher</h3>
+                    <div class="series-meta">
+                        <span>Fantastik, Aksiyon</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.2</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 5 -->
+            <div class="series-card" data-title="the mandalorian" data-genre="bilim kurgu,macera">
+                <a href="dizi-detay.html?dizi=the-mandalorian">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/sWgBv7LV2PRoQgkxwlibdGXKz1S.jpg" alt="The Mandalorian">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Mandalorian</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Macera</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 6 -->
+            <div class="series-card" data-title="the crown" data-genre="tarih,dram">
+                <a href="dizi-detay.html?dizi=the-crown">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/1M876KPjulVwppEpldhdc8V4o68.jpg" alt="The Crown">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Crown</h3>
+                    <div class="series-meta">
+                        <span>Tarih, Dram</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 7 -->
+            <div class="series-card" data-title="dark" data-genre="bilim kurgu,gizem">
+                <a href="dizi-detay.html?dizi=dark">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/5Lo6WG2I6QqC8Ep6BJyS7xGQ3Bp.jpg" alt="Dark">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">Dark</h3>
+                    <div class="series-meta">
+                        <span>Bilim Kurgu, Gizem</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dizi 8 -->
+            <div class="series-card" data-title="the office" data-genre="komedi">
+                <a href="dizi-detay.html?dizi=the-office">
+                    <div class="series-poster">
+                        <img src="https://image.tmdb.org/t/p/w500/qWnJzyZhyy74gjpSjIXWmuk0ifX.jpg" alt="The Office">
+                        <div class="overlay">
+                            <div class="play-button">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <div class="series-info">
+                    <h3 class="series-title">The Office</h3>
+                    <div class="series-meta">
+                        <span>Komedi</span>
+                        <span class="rating"><i class="fas fa-star"></i> 8.9</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="copyright">
+                &copy; 2023 DiziTV.GT.TC
+            </div>
+        </div>
+    </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+            const seriesGrid = document.getElementById('seriesGrid');
+            const noResults = document.getElementById('noResults');
+            const seriesCards = document.querySelectorAll('.series-card');
+            
+            // Arama fonksiyonu
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    // Arama kutusu boşsa tüm dizileri göster
+                    seriesCards.forEach(card => {
+                        card.style.display = 'block';
+                    });
+                    noResults.style.display = 'none';
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                // Arama sonuçlarını filtrele
+                let foundResults = false;
+                let resultCount = 0;
+                
+                seriesCards.forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const genre = card.getAttribute('data-genre');
+                    
+                    if (title.includes(searchTerm) || genre.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        foundResults = true;
+                        resultCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Sonuç yoksa mesaj göster
+                if (!foundResults) {
+                    noResults.style.display = 'block';
+                } else {
+                    noResults.style.display = 'none';
+                }
+                
+                // Arama önerilerini güncelle
+                updateSearchSuggestions(searchTerm);
+            }
+            
+            // Arama önerilerini güncelle
+            function updateSearchSuggestions(searchTerm) {
+                if (searchTerm === '') {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                const suggestions = [];
+                
+                seriesCards.forEach(card => {
+                    const title = card.getAttribute('data-title');
+                    const genre = card.getAttribute('data-genre');
+                    const seriesTitle = card.querySelector('.series-title').textContent;
+                    const imgSrc = card.querySelector('img').src;
+                    
+                    if (title.includes(searchTerm) || genre.includes(searchTerm)) {
+                        suggestions.push({
+                            title: seriesTitle,
+                            img: imgSrc,
+                            genre: card.querySelector('.series-meta span:first-child').textContent
+                        });
+                    }
+                });
+                
+                // Önerileri göster
+                if (suggestions.length > 0) {
+                    searchResults.innerHTML = '';
+                    suggestions.forEach(suggestion => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.innerHTML = `
+                            <img src="${suggestion.img}" alt="${suggestion.title}">
+                            <div class="search-result-info">
+                                <div class="search-result-title">${suggestion.title}</div>
+                                <div class="search-result-meta">${suggestion.genre}</div>
+                            </div>
+                        `;
+                        resultItem.addEventListener('click', function() {
+                            searchInput.value = suggestion.title;
+                            searchResults.style.display = 'none';
+                            performSearch();
+                        });
+                        searchResults.appendChild(resultItem);
+                    });
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
+                }
+            }
+            
+            // Olay dinleyicileri
+            searchInput.addEventListener('input', performSearch);
+            
+            searchButton.addEventListener('click', function() {
+                performSearch();
+                searchResults.style.display = 'none';
+            });
+            
+            searchInput.addEventListener('focus', function() {
+                if (searchInput.value.trim() !== '') {
+                    updateSearchSuggestions(searchInput.value.trim());
+                }
+            });
+            
+            // Dışarı tıklandığında arama sonuçlarını gizle
+            document.addEventListener('click', function(e) {
+                if (!searchResults.contains(e.target) && e.target !== searchInput) {
+                    searchResults.style.display = 'none';
+                }
+            });
+            
+            // Enter tuşu ile arama
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                    searchResults.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
