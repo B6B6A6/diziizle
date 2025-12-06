@@ -1,1 +1,443 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eşref Rüya 22. Bölüm | DiziTV</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #0f1419;
+            color: #e1e1e1;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a3245;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e50914;
+            margin-bottom: 5px;
+        }
+        
+        .tagline {
+            color: #8a8d93;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .nav a {
+            color: #e1e1e1;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 8px 0;
+            position: relative;
+        }
+        
+        .nav a:hover {
+            color: #e50914;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            color: #8a8d93;
+            font-size: 14px;
+            margin-bottom: 30px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a3245;
+        }
+        
+        .breadcrumb a {
+            color: #8a8d93;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            color: #e50914;
+        }
+        
+        /* Video Container */
+        .video-container {
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* YouTube Video Player */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+        }
+        
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Video Info */
+        .video-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 15px;
+            background-color: #1a1f2e;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #8a8d93;
+        }
+        
+        .info-value {
+            font-size: 16px;
+            color: #ffffff;
+        }
+        
+        .rating {
+            color: #ffc107;
+        }
+        
+        /* Episode Description */
+        .episode-description {
+            background-color: #1a1f2e;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        
+        .episode-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .description-text {
+            line-height: 1.7;
+            color: #c1c1c1;
+        }
+        
+        /* Loading Message */
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            color: #8a8d93;
+            font-style: italic;
+            background-color: #1a1f2e;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background-color: #2a3245;
+            color: #e1e1e1;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        .control-btn:hover {
+            background-color: #3a4255;
+        }
+        
+        .control-btn.primary {
+            background-color: #e50914;
+            color: white;
+        }
+        
+        .control-btn.primary:hover {
+            background-color: #b80710;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                gap: 20px;
+            }
+            
+            .video-info {
+                gap: 20px;
+            }
+            
+            .episode-title {
+                font-size: 20px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav {
+                gap: 15px;
+            }
+            
+            .nav a {
+                font-size: 16px;
+            }
+            
+            .info-value {
+                font-size: 14px;
+            }
+            
+            .control-btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DiziTV</div>
+            <div class="tagline">En iyi diziler burada</div>
+        </div>
+        
+        <div class="nav">
+            <a href="#">Ana Sayfa</a>
+            <a href="#">Türk Dizileri</a>
+            <a href="#">Yabancı Diziler</a>
+            <a href="#">Filmler</a>
+        </div>
+        
+        <div class="breadcrumb">
+            Ana Sayfa > Türk Dizileri > Eşref Rüya > 22. Bölüm
+        </div>
+        
+        <div class="video-container">
+            <div class="video-wrapper">
+                <!-- YouTube video embed -->
+                <iframe 
+                    class="video-player" 
+                    src="https://www.youtube.com/embed/IWZr0PdZfSM?autoplay=0&rel=0&modestbranding=1"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                    title="Eşref Rüya 22. Bölüm">
+                </iframe>
+            </div>
+            
+            <div class="video-info">
+                <div class="info-item">
+                    <div class="info-label">Tarih</div>
+                    <div class="info-value">15 Ekim 2023</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Süre</div>
+                    <div class="info-value">45 dakika</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Puan</div>
+                    <div class="info-value rating">8.7/10</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="episode-description">
+            <h2 class="episode-title">Eşref Rüya - 22. Bölüm</h2>
+            <div class="description-text">
+                <p>Eşref, rüyalarının gerçeğe dönüşmeye başlamasıyla kendisini tehlikeli bir labirentin içinde bulur. Her gece gördüğü rüyalar, günlük hayatını etkilemeye başlar ve geçmişteki travmatik olaylar yüzeye çıkar. Bu bölümde, Eşref'in rüyaları ile gerçeklik arasındaki çizgi giderek bulanıklaşırken, yeni tanıştığı gizemli bir karakter ona beklenmedik bir yardım eli uzatır.</p>
+                <p style="margin-top: 15px;">Sırlar bir bir açığa çıkarken, Eşref'in kaderi değişmek üzeredir. Her adımı onu daha da derin bir gizemin içine çekerken, gerçeklerle yüzleşmekten başka çaresi kalmamıştır.</p>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn primary" id="playBtn">
+                    ▶ Video Oynat
+                </button>
+                <button class="control-btn" id="fullscreenBtn">
+                    ⛶ Tam Ekran
+                </button>
+                <button class="control-btn" id="muteBtn">
+                    🔇 Sessiz
+                </button>
+            </div>
+        </div>
+        
+        <div class="loading-message" id="loadingMessage">
+            YouTube video yükleniyor... Lütfen bekleyin.
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const iframe = document.querySelector('.video-player');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const playBtn = document.getElementById('playBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            
+            let isMuted = false;
+            let isPlaying = false;
+            
+            // YouTube API için
+            let player;
+            
+            // YouTube API yüklendikten sonra
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player('video-player', {
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            }
+            
+            // Player hazır olduğunda
+            function onPlayerReady(event) {
+                loadingMessage.style.display = 'none';
+                console.log('YouTube player hazır');
+            }
+            
+            // Player durumu değiştiğinde
+            function onPlayerStateChange(event) {
+                if (event.data === YT.PlayerState.PLAYING) {
+                    isPlaying = true;
+                    playBtn.textContent = '⏸ Duraklat';
+                } else {
+                    isPlaying = false;
+                    playBtn.textContent = '▶ Devam Et';
+                }
+            }
+            
+            // Play/Pause butonu
+            playBtn.addEventListener('click', function() {
+                const iframeSrc = iframe.src;
+                
+                if (iframeSrc.includes('autoplay=0')) {
+                    // Autoplay aç
+                    iframe.src = iframeSrc.replace('autoplay=0', 'autoplay=1');
+                    isPlaying = true;
+                    playBtn.textContent = '⏸ Duraklat';
+                } else {
+                    // YouTube'da video kontrolü için
+                    // Sayfayı yenile ve autoplay kapat
+                    iframe.src = iframeSrc.replace('autoplay=1', 'autoplay=0');
+                    isPlaying = false;
+                    playBtn.textContent = '▶ Video Oynat';
+                }
+            });
+            
+            // Fullscreen butonu
+            fullscreenBtn.addEventListener('click', function() {
+                if (iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe.webkitRequestFullscreen) {
+                    iframe.webkitRequestFullscreen();
+                } else if (iframe.msRequestFullscreen) {
+                    iframe.msRequestFullscreen();
+                }
+                
+                // YouTube fullscreen için
+                const currentSrc = iframe.src;
+                if (!currentSrc.includes('enablejsapi=1')) {
+                    iframe.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'enablejsapi=1';
+                }
+            });
+            
+            // Mute butonu
+            muteBtn.addEventListener('click', function() {
+                isMuted = !isMuted;
+                
+                if (isMuted) {
+                    muteBtn.textContent = '🔊 Ses Aç';
+                    // YouTube mute için
+                    iframe.src = iframe.src + (iframe.src.includes('?') ? '&' : '?') + 'mute=1';
+                } else {
+                    muteBtn.textContent = '🔇 Sessiz';
+                    // YouTube unmute için
+                    iframe.src = iframe.src.replace('&mute=1', '').replace('?mute=1', '');
+                }
+            });
+            
+            // Video yüklendiğinde loading mesajını gizle
+            iframe.addEventListener('load', function() {
+                setTimeout(function() {
+                    loadingMessage.style.display = 'none';
+                }, 2000);
+            });
+            
+            // Hata durumunda
+            iframe.addEventListener('error', function() {
+                loadingMessage.innerHTML = 'Video yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.';
+            });
+            
+            // Auto-hide loading message
+            setTimeout(function() {
+                if (loadingMessage.style.display !== 'none') {
+                    loadingMessage.style.opacity = '0.7';
+                    setTimeout(function() {
+                        loadingMessage.style.display = 'none';
+                    }, 1000);
+                }
+            }, 5000);
+            
+            // YouTube API scriptini dinamik olarak yükle
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        });
+    </script>
+</body>
+</html>
