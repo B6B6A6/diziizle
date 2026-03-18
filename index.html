@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Mini App - Sual-Cavab</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- AdsGram SDK -->
+    <script src="https://sdk.adsgram.ai/js/sdk.min.js" async></script>
+    
+    <!-- CSS ƏLAQƏLƏNDİRMƏ -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Telegram Header -->
+        <div class="tg-header">
+            <h1 id="headerTitle">Sual-Cavab</h1>
+            <button id="profileBtn">👤</button>
+        </div>
+
+        <!-- Menu Tabs -->
+        <div class="menu-tabs">
+            <div class="menu-tab active" data-screen="game">🎮 Oyun</div>
+            <div class="menu-tab" data-screen="daily">📊 Günlük</div>
+            <div class="menu-tab" data-screen="weekly">📅 Həftəlik</div>
+            <div class="menu-tab" data-screen="monthly">📆 Aylıq</div>
+        </div>
+
+        <!-- İstifadəçi Profili Sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <div class="user-profile-sidebar" id="userProfile">
+            <button class="close-sidebar" id="closeSidebar">✕</button>
+            
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <div class="profile-info">
+                    <h3 id="profileDisplayName">İstifadəçi</h3>
+                    <p id="profileDisplayLogin">@username</p>
+                </div>
+            </div>
+
+            <!-- Unikal ID -->
+            <div class="user-id-box">
+                <div class="user-id-label">Şəxsi ID-niz</div>
+                <div class="user-id-value" id="userUniqueId">YÜKLƏNİR...</div>
+            </div>
+
+            <!-- Profil Formu -->
+            <div class="profile-form">
+                <div class="form-group">
+                    <label class="form-label">İstifadəçi adı (Login)</label>
+                    <input type="text" class="form-input" id="profileLogin" placeholder="Login daxil edin">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ad</label>
+                    <input type="text" class="form-input" id="profileFirstName" placeholder="Adınız">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Soyad</label>
+                    <input type="text" class="form-input" id="profileLastName" placeholder="Soyadınız">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Telefon nömrəsi</label>
+                    <input type="tel" class="form-input" id="profilePhone" placeholder="+994 XX XXX XX XX">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ID nömrəsi (avtomatik)</label>
+                    <input type="text" class="form-input readonly" id="profileId" readonly>
+                </div>
+
+                <button class="save-profile-btn" id="saveProfileBtn">Profili yadda saxla</button>
+            </div>
+
+            <!-- Oyun Statistikası -->
+            <div class="profile-stats">
+                <h3 style="margin-bottom: 15px; color: var(--tg-theme-text-color);">Oyun statistikası</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Ümumi xal</span>
+                    <span class="stat-value" id="profileTotalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Bugünkü xal</span>
+                    <span class="stat-value" id="profileDailyScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Bu həftə</span>
+                    <span class="stat-value" id="profileWeeklyScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Bu ay</span>
+                    <span class="stat-value" id="profileMonthlyScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Oyun sayı</span>
+                    <span class="stat-value" id="profileGamesPlayed">0</span>
+                </div>
+            </div>
+
+            <!-- Ən yüksək nailiyyətlər -->
+            <div class="current-user-rank" style="margin-top: 0;">
+                <div>
+                    <span style="font-weight: 600;">Ən yüksək yer:</span>
+                    <span id="profileBestRank">#--</span>
+                </div>
+                <div>
+                    <span style="font-weight: 600;">Ən yüksək xal:</span>
+                    <span id="profileBestScore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oyun Ekranı -->
+        <div id="gameScreen" class="screen active">
+            <div class="header">
+                <div class="score-box">
+                    <span>🏆</span>
+                    <span id="scoreDisplay">0</span>
+                </div>
+                <div class="question-number" id="questionCount">1 / 5</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 20%;"></div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-text" id="questionText">Sual yüklənir...</div>
+                <div class="category-badge" id="categoryBadge">Ümumi</div>
+            </div>
+
+            <div class="options-grid" id="optionsContainer"></div>
+
+            <div class="feedback-message" id="feedbackMessage"></div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="submitBtn" disabled>Cavabı təsdiq et</button>
+                <button class="btn btn-secondary" id="nextBtn" disabled>Növbəti sual</button>
+            </div>
+        </div>
+
+        <!-- Günlük Liderlər Ekranı -->
+        <div id="dailyScreen" class="screen">
+            <div class="leaderboard-header">
+                <div class="leaderboard-icon">📊</div>
+                <div class="leaderboard-title">
+                    <h2>Günlük Liderlər</h2>
+                    <p>Bugünün ən yaxşı oyunçuları</p>
+                </div>
+            </div>
+
+            <div class="leaderboard-stats" id="dailyStats">
+                <div class="stat-item">
+                    <div class="stat-value" id="dailyTotalPlayers">0</div>
+                    <div class="stat-label">Oyunçu</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="dailyTotalGames">0</div>
+                    <div class="stat-label">Oyun</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="dailyTopScore">0</div>
+                    <div class="stat-label">Ən yüksək</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span class="last-updated" id="dailyLastUpdated">Son yenilənmə: --</span>
+                <button class="refresh-btn" id="refreshDaily">🔄 Yenilə</button>
+            </div>
+
+            <div id="dailyLeaderboard" class="leaderboard-list"></div>
+
+            <div class="previous-period">
+                <h4>📅 Dünənin liderləri (top 10)</h4>
+                <div id="previousDailyLeaderboard" class="leaderboard-list" style="max-height: 250px;"></div>
+            </div>
+
+            <div id="dailyUserRank" class="current-user-rank hidden">
+                <div>
+                    <span style="font-weight: 600;">Sizin yeriniz:</span>
+                    <span id="dailyUserRankPosition">#--</span>
+                </div>
+                <div>
+                    <span id="dailyUserRankScore">0 xal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Həftəlik Liderlər Ekranı -->
+        <div id="weeklyScreen" class="screen">
+            <div class="leaderboard-header">
+                <div class="leaderboard-icon">📅</div>
+                <div class="leaderboard-title">
+                    <h2>Həftəlik Liderlər</h2>
+                    <p>Bu həftənin ən yaxşı oyunçuları</p>
+                </div>
+            </div>
+
+            <div class="leaderboard-stats" id="weeklyStats">
+                <div class="stat-item">
+                    <div class="stat-value" id="weeklyTotalPlayers">0</div>
+                    <div class="stat-label">Oyunçu</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="weeklyTotalGames">0</div>
+                    <div class="stat-label">Oyun</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="weeklyTopScore">0</div>
+                    <div class="stat-label">Ən yüksək</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span class="last-updated" id="weeklyLastUpdated">Son yenilənmə: --</span>
+                <button class="refresh-btn" id="refreshWeekly">🔄 Yenilə</button>
+            </div>
+
+            <div id="weeklyLeaderboard" class="leaderboard-list"></div>
+
+            <div class="previous-period">
+                <h4>📅 Keçən həftənin liderləri (top 10)</h4>
+                <div id="previousWeeklyLeaderboard" class="leaderboard-list" style="max-height: 250px;"></div>
+            </div>
+
+            <div id="weeklyUserRank" class="current-user-rank hidden">
+                <div>
+                    <span style="font-weight: 600;">Sizin yeriniz:</span>
+                    <span id="weeklyUserRankPosition">#--</span>
+                </div>
+                <div>
+                    <span id="weeklyUserRankScore">0 xal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aylıq Liderlər Ekranı -->
+        <div id="monthlyScreen" class="screen">
+            <div class="leaderboard-header">
+                <div class="leaderboard-icon">📆</div>
+                <div class="leaderboard-title">
+                    <h2>Aylıq Liderlər</h2>
+                    <p>Bu ayın ən yaxşı oyunçuları</p>
+                </div>
+            </div>
+
+            <div class="leaderboard-stats" id="monthlyStats">
+                <div class="stat-item">
+                    <div class="stat-value" id="monthlyTotalPlayers">0</div>
+                    <div class="stat-label">Oyunçu</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="monthlyTotalGames">0</div>
+                    <div class="stat-label">Oyun</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="monthlyTopScore">0</div>
+                    <div class="stat-label">Ən yüksək</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span class="last-updated" id="monthlyLastUpdated">Son yenilənmə: --</span>
+                <button class="refresh-btn" id="refreshMonthly">🔄 Yenilə</button>
+            </div>
+
+            <div id="monthlyLeaderboard" class="leaderboard-list"></div>
+
+            <div class="previous-period">
+                <h4>📆 Keçən ayın liderləri (top 10)</h4>
+                <div id="previousMonthlyLeaderboard" class="leaderboard-list" style="max-height: 250px;"></div>
+            </div>
+
+            <div id="monthlyUserRank" class="current-user-rank hidden">
+                <div>
+                    <span style="font-weight: 600;">Sizin yeriniz:</span>
+                    <span id="monthlyUserRankPosition">#--</span>
+                </div>
+                <div>
+                    <span id="monthlyUserRankScore">0 xal</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nəticə Ekranı -->
+        <div id="resultScreen" class="screen">
+            <div class="result-screen">
+                <div class="result-icon">🎉</div>
+                <div class="result-title">Oyun bitdi!</div>
+                <div class="result-score" id="finalScore">0</div>
+                <button class="btn btn-primary new-game-btn" id="newGameBtn" style="width: 100%;">Yeni oyun başlat</button>
+                <button class="btn btn-secondary" id="viewLeaderboardBtn" style="width: 100%; margin-top: 10px;">Liderlərə bax</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Konfiqurasiya -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- JavaScript ƏLAQƏLƏNDİRMƏ - ƏN SONDƏ OLMALIDIR -->
+    <script src="script.js"></script>
+</body>
+</html>
