@@ -1,6 +1,6 @@
 (function() {
     // ------------------------------------------------------------
-    // GLOBAL DƏYİŞƏNLƏR
+    // GLOBAL DƏYİŞƏNLƠR
     // ------------------------------------------------------------
     
     // Telegram WebApp ilə əlaqə
@@ -16,11 +16,12 @@
     }
 
     // ------------------------------------------------------------
-    // ADSGRAM REKLAM KONFİQURASİYASI
+    // ADSGRAM REKLAM KONFİQURASİYASI - ÖZ BLOCK ID-NİZİ YAZIN
     // ------------------------------------------------------------
     const ADSGRAM_CONFIG = {
-        BLOCK_ID: '8403904397', // ÖZ BLOCK ID-NİZİ YAZIN
-        IS_ENABLED: true                     // Reklamı aktiv etmək üçün
+        BLOCK_ID: '1234-5678-9012-3456', // AdsGram panelindən aldığınız REAL block ID
+        IS_ENABLED: true,
+        TEST_MODE: true // Test rejimi (reklam olmadan sınaq üçün)
     };
 
     // ------------------------------------------------------------
@@ -66,7 +67,7 @@
     let score = 0;
     let selectedOption = null;
     let answerSubmitted = false;
-    let extraLife = false; // Reklamdan qazanılan əlavə can
+    let extraLife = false;
     let totalQuestions = questions.length;
 
     // ------------------------------------------------------------
@@ -87,7 +88,6 @@
     // KÖMƏKÇİ FUNKSİYALAR
     // ------------------------------------------------------------
 
-    // Unikal ID yaratma funksiyası (5 simvol - hərf və rəqəm qarışığı)
     function generateUniqueId() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = '';
@@ -97,7 +97,6 @@
         return result;
     }
 
-    // LocalStorage-a yadda saxla
     function saveUserToLocalStorage() {
         localStorage.setItem('userUniqueId', userData.uniqueId);
         localStorage.setItem('userLogin', userData.login);
@@ -109,7 +108,6 @@
         localStorage.setItem('userCreatedAt', userData.createdAt);
     }
 
-    // Bildiriş göstər
     function showNotification(message, isSuccess = true) {
         const feedback = document.getElementById('feedbackMessage');
         if (!feedback) return;
@@ -118,60 +116,143 @@
         feedback.className = `feedback-message ${isSuccess ? 'success' : 'error'}`;
         feedback.style.display = 'block';
         
-        // 3 saniyə sonra gizlət
         setTimeout(() => {
             if (feedback) feedback.style.display = 'none';
         }, 3000);
     }
 
     // ------------------------------------------------------------
-    // ADSGRAM REKLAM FUNKSİYALARI
+    // ADSGRAM REKLAM FUNKSİYALARI - YENİLƏNƏN VERSİYA
     // ------------------------------------------------------------
 
-    // AdsGram SDK-sını yüklə
-    function loadAdsGramSDK() {
-        return new Promise((resolve, reject) => {
+    // SDK-nın yükləndiyini yoxla
+    function checkAdsGramSDK() {
+        return new Promise((resolve) => {
             if (window.AdsGram) {
-                resolve(window.AdsGram);
+                console.log('✅ AdsGram SDK artıq yüklənib');
+                resolve(true);
                 return;
             }
 
-            // SDK artıq HTML-də yüklənib, amma hazır olana qədər gözlə
-            let attempts = 0;
-            const checkInterval = setInterval(() => {
-                attempts++;
-                if (window.AdsGram) {
-                    clearInterval(checkInterval);
-                    resolve(window.AdsGram);
-                } else if (attempts > 20) { // 2 saniyə timeout
-                    clearInterval(checkInterval);
-                    reject('AdsGram SDK timeout');
-                }
-            }, 100);
+            console.log('⏳ AdsGram SDK yüklənir...');
+            
+            // SDK-nı əl ilə yüklə
+            const script = document.createElement('script');
+            script.src = 'https://sdk.adsgram.ai/js/sdk.min.js';
+            script.async = true;
+            
+            script.onload = () => {
+                console.log('✅ AdsGram SDK uğurla yükləndi');
+                resolve(true);
+            };
+            
+            script.onerror = (error) => {
+                console.error('❌ AdsGram SDK yüklənmədi:', error);
+                resolve(false);
+            };
+            
+            document.head.appendChild(script);
         });
+    }
+
+    // Test rejimi üçün mock reklam
+    function showTestReward() {
+        console.log('🧪 Test rejimi: Reklam göstərilir...');
+        
+        showNotification('🔴 Test reklamı: 3 saniyə gözləyin...', false);
+        
+        setTimeout(() => {
+            handleAdReward();
+            showNotification('✅ Test reklamı tamamlandı! Bonus verildi.', true);
+        }, 3000);
     }
 
     // Reklamdan sonra mükafatı ver
     function handleAdReward() {
-        // İstifadəçiyə 1 əlavə həyat ver
         extraLife = true;
         showNotification('🎁 Reklam izlədiyiniz üçün 1 əlavə can qazandınız!', true);
         
-        // Cavabı təsdiq et düyməsini aktiv et (təkrar cəhd edə bilər)
         const submitBtn = document.getElementById('submitBtn');
         const nextBtn = document.getElementById('nextBtn');
         
         if (submitBtn) submitBtn.disabled = false;
         if (nextBtn) nextBtn.disabled = true;
         
-        // Seçimi təmizlə və təkrar cəhd etməyə icazə ver
         selectedOption = null;
         answerSubmitted = false;
         
-        // Bütün option düymələrindən classları təmizlə
         document.querySelectorAll('.option-btn').forEach(btn => {
             btn.classList.remove('selected', 'correct', 'wrong');
         });
+    }
+
+    // AdsGram reklamını göstər - YENİLƏNƏN VERSİYA
+    async function showAdsGramRewardedAd() {
+        // Test rejimi aktivdirsə, mock reklam göstər
+        if (ADSGRAM_CONFIG.TEST_MODE) {
+            showTestReward();
+            return true;
+        }
+
+        if (!ADSGRAM_CONFIG.IS_ENABLED) {
+            console.log('ℹ️ AdsGram reklamı deaktivdir');
+            return false;
+        }
+
+        if (!ADSGRAM_CONFIG.BLOCK_ID || ADSGRAM_CONFIG.BLOCK_ID === 'YOUR_ADSGRAM_BLOCK_ID' || ADSGRAM_CONFIG.BLOCK_ID.length < 5) {
+            console.error('❌ AdsGram BLOCK_ID yanlışdır:', ADSGRAM_CONFIG.BLOCK_ID);
+            showNotification('Reklam ID-si düzgün deyil!', false);
+            
+            // Test rejimini aktiv et
+            ADSGRAM_CONFIG.TEST_MODE = true;
+            showTestReward();
+            return true;
+        }
+
+        try {
+            // SDK-nın yükləndiyini yoxla
+            const sdkLoaded = await checkAdsGramSDK();
+            if (!sdkLoaded) {
+                throw new Error('SDK yüklənmədi');
+            }
+
+            console.log('🎯 AdsGram reklamı göstərilir, BLOCK_ID:', ADSGRAM_CONFIG.BLOCK_ID);
+            
+            // Rewarded Video reklamı yarat 
+            const adController = AdsGram.init({
+                blockId: ADSGRAM_CONFIG.BLOCK_ID,
+                type: 'rewarded',
+                onReward: () => {
+                    console.log('🎁 Reklam izləndi, mükafat verildi');
+                    handleAdReward();
+                },
+                onError: (error) => {
+                    console.error('❌ AdsGram xətası:', error);
+                    showNotification('Reklam göstərilə bilmədi: ' + (error.message || 'Bilinməyən xəta'), false);
+                    
+                    // Xəta olduqda test rejiminə keç
+                    ADSGRAM_CONFIG.TEST_MODE = true;
+                    showTestReward();
+                },
+                onClose: () => {
+                    console.log('Reklam bağlandı');
+                }
+            });
+
+            // Reklamı göstər
+            const result = await adController.show();
+            console.log('✅ Reklam göstərildi:', result);
+            return result;
+
+        } catch (error) {
+            console.error('❌ AdsGram reklamı xətası:', error);
+            showNotification('Reklam xətası: ' + error.message, false);
+            
+            // Xəta olduqda test rejiminə keç
+            ADSGRAM_CONFIG.TEST_MODE = true;
+            showTestReward();
+            return false;
+        }
     }
 
     // Reklamsız səhv cavab davranışı
@@ -183,246 +264,85 @@
         if (nextBtn) nextBtn.disabled = false;
     }
 
-    // AdsGram reklamını göstər
-    async function showAdsGramRewardedAd() {
-        if (!ADSGRAM_CONFIG.IS_ENABLED) {
-            console.log('ℹ️ AdsGram reklamı deaktivdir');
-            return false;
-        }
-
-        if (!ADSGRAM_CONFIG.BLOCK_ID || ADSGRAM_CONFIG.BLOCK_ID === 'YOUR_ADSGRAM_BLOCK_ID') {
-            console.warn('⚠️ AdsGram BLOCK_ID təyin edilməyib');
-            showNotification('Reklam konfiqurasiya edilməyib', false);
-            return false;
-        }
-
-        try {
-            const AdsGram = await loadAdsGramSDK();
-            
-            // Rewarded Video reklamı yarat 
-            const adController = AdsGram.init({
-                blockId: ADSGRAM_CONFIG.BLOCK_ID,
-                type: 'rewarded', // Mükafatlı video reklam
-                onReward: () => {
-                    console.log('🎁 Reklam izləndi, mükafat verildi');
-                    handleAdReward();
-                },
-                onError: (error) => {
-                    console.error('❌ AdsGram xətası:', error);
-                    showNotification('Reklam göstərilə bilmədi', false);
-                    handleWrongAnswerWithoutAd();
-                },
-                onClose: () => {
-                    console.log('Reklam bağlandı');
-                }
-            });
-
-            // Reklamı göstər
-            const result = await adController.show();
-            return result;
-
-        } catch (error) {
-            console.error('❌ AdsGram reklamı göstərilərkən xəta:', error);
-            showNotification('Reklam yüklənə bilmədi', false);
-            return false;
-        }
-    }
-
     // ------------------------------------------------------------
-    // FIREBASE FUNKSİYALARI
+    // FIREBASE FUNKSİYALARI (SADƏLƏŞDİRİLMİŞ)
     // ------------------------------------------------------------
 
-    // Firebase-dən istifadəçi məlumatlarını yüklə
     async function loadUserFromFirebase() {
-        if (!db) {
-            console.log('Firebase yoxdur, localStorage istifadə olunur');
-            
-            // Əgər uniqueId yoxdursa, yenisini yarat
-            if (!userData.uniqueId) {
-                userData.uniqueId = generateUniqueId();
-                saveUserToLocalStorage();
-            }
-            
-            displayUserProfile();
-            return;
-        }
-
-        try {
-            // Telegram istifadəçi ID-si varsa onu istifadə et
-            const telegramId = tg?.initDataUnsafe?.user?.id?.toString();
-            
-            if (telegramId) {
-                // Telegram ID ilə axtar
-                const userQuery = await db.collection('users')
-                    .where('telegramId', '==', telegramId)
-                    .limit(1)
-                    .get();
-                
-                if (!userQuery.empty) {
-                    // İstifadəçi tapıldı
-                    const userDoc = userQuery.docs[0];
-                    userData.uniqueId = userDoc.id;
-                    userData.login = userDoc.data().login || '';
-                    userData.firstName = userDoc.data().firstName || tg?.initDataUnsafe?.user?.first_name || '';
-                    userData.lastName = userDoc.data().lastName || tg?.initDataUnsafe?.user?.last_name || '';
-                    userData.phone = userDoc.data().phone || '';
-                    userData.score = userDoc.data().score || 0;
-                    userData.gamesPlayed = userDoc.data().gamesPlayed || 0;
-                    userData.createdAt = userDoc.data().createdAt || new Date().toISOString();
-                    
-                    console.log('✅ İstifadəçi Firebase-dən yükləndi:', userData);
-                } else {
-                    // Yeni istifadəçi yarat
-                    userData.uniqueId = generateUniqueId();
-                    userData.firstName = tg?.initDataUnsafe?.user?.first_name || '';
-                    userData.lastName = tg?.initDataUnsafe?.user?.last_name || '';
-                    userData.createdAt = new Date().toISOString();
-                    
-                    // Firebase-ə yadda saxla
-                    await db.collection('users').doc(userData.uniqueId).set({
-                        telegramId: telegramId,
-                        uniqueId: userData.uniqueId,
-                        login: userData.login,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
-                        phone: userData.phone,
-                        score: userData.score,
-                        gamesPlayed: userData.gamesPlayed,
-                        createdAt: userData.createdAt,
-                        lastSeen: new Date().toISOString()
-                    });
-                    
-                    console.log('✅ Yeni istifadəçi yaradıldı:', userData);
-                }
-            } else {
-                // Telegram ID yoxdursa, local ID yarat
-                if (!userData.uniqueId) {
-                    userData.uniqueId = generateUniqueId();
-                }
-                
-                // Firebase-də bu ID ilə axtar
-                const userDoc = await db.collection('users').doc(userData.uniqueId).get();
-                
-                if (userDoc.exists) {
-                    userData.login = userDoc.data().login || '';
-                    userData.firstName = userDoc.data().firstName || '';
-                    userData.lastName = userDoc.data().lastName || '';
-                    userData.phone = userDoc.data().phone || '';
-                    userData.score = userDoc.data().score || 0;
-                    userData.gamesPlayed = userDoc.data().gamesPlayed || 0;
-                    userData.createdAt = userDoc.data().createdAt || new Date().toISOString();
-                }
-            }
-            
-            // LocalStorage-a yadda saxla
+        if (!userData.uniqueId) {
+            userData.uniqueId = generateUniqueId();
             saveUserToLocalStorage();
-            
-            // Profili göstər
-            displayUserProfile();
-            
-        } catch (error) {
-            console.error('❌ Firebase yükləmə xətası:', error);
-            
-            // Əgər uniqueId yoxdursa, yenisini yarat
-            if (!userData.uniqueId) {
-                userData.uniqueId = generateUniqueId();
-                saveUserToLocalStorage();
-            }
-            
-            displayUserProfile();
         }
+        displayUserProfile();
     }
 
-    // Firebase-ə yadda saxla
     async function saveUserToFirebase() {
-        if (!db) return;
-        
-        try {
-            const telegramId = tg?.initDataUnsafe?.user?.id?.toString();
-            
-            await db.collection('users').doc(userData.uniqueId).set({
-                telegramId: telegramId || '',
-                uniqueId: userData.uniqueId,
-                login: userData.login,
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                phone: userData.phone,
-                score: userData.score,
-                gamesPlayed: userData.gamesPlayed,
-                createdAt: userData.createdAt || new Date().toISOString(),
-                lastSeen: new Date().toISOString()
-            }, { merge: true });
-            
-            console.log('✅ Məlumatlar Firebase-ə yadda saxlanıldı');
-        } catch (error) {
-            console.error('❌ Firebase yaddaş xətası:', error);
-        }
+        // Firebase yoxdursa, sadəcə local-a yaz
+        saveUserToLocalStorage();
     }
 
     // ------------------------------------------------------------
     // PROFİL FUNKSİYALARI
     // ------------------------------------------------------------
 
-    // Profil məlumatlarını göstər
     function displayUserProfile() {
-        const userUniqueIdEl = document.getElementById('userUniqueId');
-        const profileIdEl = document.getElementById('profileId');
-        const profileLoginEl = document.getElementById('profileLogin');
-        const profileFirstNameEl = document.getElementById('profileFirstName');
-        const profileLastNameEl = document.getElementById('profileLastName');
-        const profilePhoneEl = document.getElementById('profilePhone');
-        const profileDisplayNameEl = document.getElementById('profileDisplayName');
-        const profileDisplayLoginEl = document.getElementById('profileDisplayLogin');
-        const profileAvatarEl = document.getElementById('profileAvatar');
-        const profileTotalScoreEl = document.getElementById('profileTotalScore');
-        const profileGamesPlayedEl = document.getElementById('profileGamesPlayed');
+        const elements = {
+            userUniqueId: document.getElementById('userUniqueId'),
+            profileId: document.getElementById('profileId'),
+            profileLogin: document.getElementById('profileLogin'),
+            profileFirstName: document.getElementById('profileFirstName'),
+            profileLastName: document.getElementById('profileLastName'),
+            profilePhone: document.getElementById('profilePhone'),
+            profileDisplayName: document.getElementById('profileDisplayName'),
+            profileDisplayLogin: document.getElementById('profileDisplayLogin'),
+            profileAvatar: document.getElementById('profileAvatar'),
+            profileTotalScore: document.getElementById('profileTotalScore'),
+            profileGamesPlayed: document.getElementById('profileGamesPlayed')
+        };
         
-        if (userUniqueIdEl) userUniqueIdEl.textContent = userData.uniqueId;
-        if (profileIdEl) profileIdEl.value = userData.uniqueId;
-        
-        if (profileLoginEl) profileLoginEl.value = userData.login || '';
-        if (profileFirstNameEl) profileFirstNameEl.value = userData.firstName || '';
-        if (profileLastNameEl) profileLastNameEl.value = userData.lastName || '';
-        if (profilePhoneEl) profilePhoneEl.value = userData.phone || '';
+        if (elements.userUniqueId) elements.userUniqueId.textContent = userData.uniqueId;
+        if (elements.profileId) elements.profileId.value = userData.uniqueId;
+        if (elements.profileLogin) elements.profileLogin.value = userData.login || '';
+        if (elements.profileFirstName) elements.profileFirstName.value = userData.firstName || '';
+        if (elements.profileLastName) elements.profileLastName.value = userData.lastName || '';
+        if (elements.profilePhone) elements.profilePhone.value = userData.phone || '';
         
         const fullName = userData.firstName || userData.lastName ? 
             `${userData.firstName} ${userData.lastName}`.trim() : 'İstifadəçi';
-        if (profileDisplayNameEl) profileDisplayNameEl.textContent = fullName;
-        if (profileDisplayLoginEl) profileDisplayLoginEl.textContent = userData.login ? `@${userData.login}` : '@istifadeci';
-        if (profileAvatarEl) profileAvatarEl.textContent = (userData.firstName?.[0] || userData.login?.[0] || '👤').toUpperCase();
+        if (elements.profileDisplayName) elements.profileDisplayName.textContent = fullName;
+        if (elements.profileDisplayLogin) elements.profileDisplayLogin.textContent = userData.login ? `@${userData.login}` : '@istifadeci';
+        if (elements.profileAvatar) elements.profileAvatar.textContent = (userData.firstName?.[0] || userData.login?.[0] || '👤').toUpperCase();
         
-        if (profileTotalScoreEl) profileTotalScoreEl.textContent = userData.score;
-        if (profileGamesPlayedEl) profileGamesPlayedEl.textContent = userData.gamesPlayed;
+        if (elements.profileTotalScore) elements.profileTotalScore.textContent = userData.score;
+        if (elements.profileGamesPlayed) elements.profileGamesPlayed.textContent = userData.gamesPlayed;
         
-        // Nümunə məlumatlar
-        const profileDailyScoreEl = document.getElementById('profileDailyScore');
-        const profileWeeklyScoreEl = document.getElementById('profileWeeklyScore');
-        const profileMonthlyScoreEl = document.getElementById('profileMonthlyScore');
-        const profileBestRankEl = document.getElementById('profileBestRank');
-        const profileBestScoreEl = document.getElementById('profileBestScore');
+        // Nümunə statistikalar
+        const dailyEl = document.getElementById('profileDailyScore');
+        const weeklyEl = document.getElementById('profileWeeklyScore');
+        const monthlyEl = document.getElementById('profileMonthlyScore');
+        const rankEl = document.getElementById('profileBestRank');
+        const bestEl = document.getElementById('profileBestScore');
         
-        if (profileDailyScoreEl) profileDailyScoreEl.textContent = Math.floor(Math.random() * 200);
-        if (profileWeeklyScoreEl) profileWeeklyScoreEl.textContent = Math.floor(Math.random() * 800);
-        if (profileMonthlyScoreEl) profileMonthlyScoreEl.textContent = Math.floor(Math.random() * 2000);
-        if (profileBestRankEl) profileBestRankEl.textContent = '#' + (Math.floor(Math.random() * 20) + 1);
-        if (profileBestScoreEl) profileBestScoreEl.textContent = Math.floor(Math.random() * 3000) + 1000;
+        if (dailyEl) dailyEl.textContent = Math.floor(Math.random() * 200);
+        if (weeklyEl) weeklyEl.textContent = Math.floor(Math.random() * 800);
+        if (monthlyEl) monthlyEl.textContent = Math.floor(Math.random() * 2000);
+        if (rankEl) rankEl.textContent = '#' + (Math.floor(Math.random() * 20) + 1);
+        if (bestEl) bestEl.textContent = Math.floor(Math.random() * 3000) + 1000;
     }
 
-    // Profili yadda saxla
     async function saveUserProfile() {
-        const profileLoginEl = document.getElementById('profileLogin');
-        const profileFirstNameEl = document.getElementById('profileFirstName');
-        const profileLastNameEl = document.getElementById('profileLastName');
-        const profilePhoneEl = document.getElementById('profilePhone');
+        const loginEl = document.getElementById('profileLogin');
+        const firstEl = document.getElementById('profileFirstName');
+        const lastEl = document.getElementById('profileLastName');
+        const phoneEl = document.getElementById('profilePhone');
         
-        userData.login = profileLoginEl ? profileLoginEl.value : '';
-        userData.firstName = profileFirstNameEl ? profileFirstNameEl.value : '';
-        userData.lastName = profileLastNameEl ? profileLastNameEl.value : '';
-        userData.phone = profilePhoneEl ? profilePhoneEl.value : '';
+        userData.login = loginEl ? loginEl.value : '';
+        userData.firstName = firstEl ? firstEl.value : '';
+        userData.lastName = lastEl ? lastEl.value : '';
+        userData.phone = phoneEl ? phoneEl.value : '';
         
         saveUserToLocalStorage();
         await saveUserToFirebase();
-        
         displayUserProfile();
         
         if (tg) {
@@ -437,24 +357,19 @@
     // ------------------------------------------------------------
 
     function updateQuestionCounter() {
-        const questionCountEl = document.getElementById('questionCount');
-        const progressFillEl = document.getElementById('progressFill');
+        const qEl = document.getElementById('questionCount');
+        const pEl = document.getElementById('progressFill');
         
-        if (questionCountEl) {
-            questionCountEl.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
-        }
-        
-        if (progressFillEl) {
-            const progressPercent = ((currentQuestionIndex + 1) / totalQuestions) * 100;
-            progressFillEl.style.width = `${progressPercent}%`;
+        if (qEl) qEl.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+        if (pEl) {
+            const percent = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+            pEl.style.width = `${percent}%`;
         }
     }
 
     function updateScore() {
-        const scoreDisplayEl = document.getElementById('scoreDisplay');
-        if (scoreDisplayEl) {
-            scoreDisplayEl.textContent = score;
-        }
+        const scoreEl = document.getElementById('scoreDisplay');
+        if (scoreEl) scoreEl.textContent = score;
     }
 
     function selectOption(index) {
@@ -464,136 +379,120 @@
             btn.classList.remove('selected');
         });
         
-        const selectedBtn = document.querySelector(`.option-btn[data-index="${index}"]`);
-        if (selectedBtn) {
-            selectedBtn.classList.add('selected');
-        }
+        const btn = document.querySelector(`.option-btn[data-index="${index}"]`);
+        if (btn) btn.classList.add('selected');
         
         selectedOption = index;
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) submitBtn.disabled = false;
+        const sb = document.getElementById('submitBtn');
+        if (sb) sb.disabled = false;
     }
 
     function renderOptions(selectedIndex = null, correctIndex = null, disabled = false) {
-        const currentQ = questions[currentQuestionIndex];
-        const optionsContainer = document.getElementById('optionsContainer');
-        if (!optionsContainer) return;
+        const q = questions[currentQuestionIndex];
+        const container = document.getElementById('optionsContainer');
+        if (!container) return;
         
-        optionsContainer.innerHTML = '';
+        container.innerHTML = '';
         
-        currentQ.options.forEach((option, index) => {
+        q.options.forEach((opt, idx) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.setAttribute('data-index', index);
-            
+            btn.setAttribute('data-index', idx);
             if (disabled) btn.classList.add('disabled');
-            btn.textContent = option;
+            btn.textContent = opt;
             
-            if (selectedIndex === index) btn.classList.add('selected');
+            if (selectedIndex === idx) btn.classList.add('selected');
             
             if (answerSubmitted) {
-                if (index === currentQ.correct) btn.classList.add('correct');
-                else if (selectedIndex === index && selectedIndex !== currentQ.correct) btn.classList.add('wrong');
+                if (idx === q.correct) btn.classList.add('correct');
+                else if (selectedIndex === idx && selectedIndex !== q.correct) btn.classList.add('wrong');
             }
             
-            btn.onclick = function(e) {
+            btn.onclick = (e) => {
                 e.preventDefault();
-                if (!answerSubmitted && !disabled) selectOption(index);
+                if (!answerSubmitted && !disabled) selectOption(idx);
             };
             
-            optionsContainer.appendChild(btn);
+            container.appendChild(btn);
         });
     }
 
     function loadQuestion() {
-        const currentQ = questions[currentQuestionIndex];
-        const questionTextEl = document.getElementById('questionText');
-        const categoryBadgeEl = document.getElementById('categoryBadge');
+        const q = questions[currentQuestionIndex];
+        const qEl = document.getElementById('questionText');
+        const cEl = document.getElementById('categoryBadge');
         
-        if (questionTextEl) questionTextEl.textContent = currentQ.question;
-        if (categoryBadgeEl) categoryBadgeEl.textContent = currentQ.category;
+        if (qEl) qEl.textContent = q.question;
+        if (cEl) cEl.textContent = q.category;
         
         selectedOption = null;
         answerSubmitted = false;
         renderOptions();
         
-        const submitBtn = document.getElementById('submitBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const feedbackMessage = document.getElementById('feedbackMessage');
+        const sb = document.getElementById('submitBtn');
+        const nb = document.getElementById('nextBtn');
+        const fb = document.getElementById('feedbackMessage');
         
-        if (submitBtn) submitBtn.disabled = true;
-        if (nextBtn) nextBtn.disabled = true;
-        if (feedbackMessage) feedbackMessage.style.display = 'none';
+        if (sb) sb.disabled = true;
+        if (nb) nb.disabled = true;
+        if (fb) fb.style.display = 'none';
     }
 
-    // Səhv cavab idarəetməsi (AdsGram ilə)
     async function handleWrongAnswer() {
         if (extraLife) {
-            // İstifadəçinin əlavə canı var - səhv cavabı bağışla
             extraLife = false;
             showNotification('✨ Əlavə can istifadə edildi! Təkrar cəhd edin.', true);
             
-            // Seçimi təmizlə və təkrar cəhd etməyə icazə ver
             selectedOption = null;
             answerSubmitted = false;
             
-            // Bütün option düymələrindən classları təmizlə
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.classList.remove('selected', 'correct', 'wrong');
             });
             
-            const submitBtn = document.getElementById('submitBtn');
-            const nextBtn = document.getElementById('nextBtn');
+            const sb = document.getElementById('submitBtn');
+            const nb = document.getElementById('nextBtn');
             
-            if (submitBtn) submitBtn.disabled = false;
-            if (nextBtn) nextBtn.disabled = true;
+            if (sb) sb.disabled = false;
+            if (nb) nb.disabled = true;
             
             return;
         }
 
         // Reklam göstər
-        const adShown = await showAdsGramRewardedAd();
-        
-        if (!adShown) {
-            // Reklam göstərilmədisə, normal davam et
-            handleWrongAnswerWithoutAd();
-        }
+        await showAdsGramRewardedAd();
     }
 
     async function handleSubmit() {
         if (selectedOption === null || answerSubmitted) return;
 
-        const currentQ = questions[currentQuestionIndex];
-        const isCorrect = (selectedOption === currentQ.correct);
+        const q = questions[currentQuestionIndex];
+        const correct = (selectedOption === q.correct);
         
         answerSubmitted = true;
-        renderOptions(selectedOption, currentQ.correct, true);
+        renderOptions(selectedOption, q.correct, true);
         
-        const feedbackMessage = document.getElementById('feedbackMessage');
-        const submitBtn = document.getElementById('submitBtn');
-        const nextBtn = document.getElementById('nextBtn');
+        const fb = document.getElementById('feedbackMessage');
+        const sb = document.getElementById('submitBtn');
+        const nb = document.getElementById('nextBtn');
         
-        if (isCorrect) {
+        if (correct) {
             score += 10;
             updateScore();
-            if (feedbackMessage) {
-                feedbackMessage.textContent = '✅ Doğru cavab! +10 xal';
-                feedbackMessage.className = 'feedback-message success';
-                feedbackMessage.style.display = 'block';
+            if (fb) {
+                fb.textContent = '✅ Doğru cavab! +10 xal';
+                fb.className = 'feedback-message success';
+                fb.style.display = 'block';
             }
-            if (submitBtn) submitBtn.disabled = true;
-            if (nextBtn) nextBtn.disabled = false;
+            if (sb) sb.disabled = true;
+            if (nb) nb.disabled = false;
         } else {
-            // SƏHV CAVAB - AdsGram reklamı çağır
-            if (feedbackMessage) {
-                feedbackMessage.textContent = '❌ Səhv cavab! Reklam izləyib davam edə bilərsiniz...';
-                feedbackMessage.className = 'feedback-message error';
-                feedbackMessage.style.display = 'block';
+            if (fb) {
+                fb.textContent = '❌ Səhv cavab! Reklam izləyib davam edə bilərsiniz...';
+                fb.className = 'feedback-message error';
+                fb.style.display = 'block';
             }
-            
-            if (submitBtn) submitBtn.disabled = true;
-            
-            // Reklamı göstər
+            if (sb) sb.disabled = true;
             await handleWrongAnswer();
         }
     }
@@ -609,50 +508,22 @@
     }
 
     async function showResultScreen() {
-        const gameScreen = document.getElementById('gameScreen');
-        const resultScreen = document.getElementById('resultScreen');
-        const finalScoreEl = document.getElementById('finalScore');
+        const gs = document.getElementById('gameScreen');
+        const rs = document.getElementById('resultScreen');
+        const fs = document.getElementById('finalScore');
         
-        if (gameScreen) gameScreen.classList.remove('active');
-        if (resultScreen) resultScreen.classList.add('active');
+        if (gs) gs.classList.remove('active');
+        if (rs) rs.classList.add('active');
+        if (fs) fs.textContent = `${score} / ${totalQuestions * 10}`;
         
-        const totalScore = score;
-        if (finalScoreEl) finalScoreEl.textContent = `${totalScore} / ${totalQuestions * 10}`;
-        
-        // İstifadəçi xalını yenilə
-        userData.score += totalScore;
+        userData.score += score;
         userData.gamesPlayed++;
-        
         saveUserToLocalStorage();
-        
-        // Firebase-ə yadda saxla
-        if (db) {
-            try {
-                // Oyunu yadda saxla
-                await db.collection('games').add({
-                    userId: userData.uniqueId,
-                    userLogin: userData.login,
-                    userName: `${userData.firstName} ${userData.lastName}`.trim() || userData.login,
-                    score: totalScore,
-                    playedAt: new Date().toISOString()
-                });
-                
-                // İstifadəçini yenilə
-                await db.collection('users').doc(userData.uniqueId).set({
-                    score: userData.score,
-                    gamesPlayed: userData.gamesPlayed,
-                    lastPlayed: new Date().toISOString()
-                }, { merge: true });
-                
-                console.log('✅ Oyun nəticəsi Firebase-ə yadda saxlanıldı');
-            } catch (error) {
-                console.error('❌ Oyun nəticəsi yadda saxlanılarkən xəta:', error);
-            }
-        }
+        await saveUserToFirebase();
         
         if (tg) {
             tg.sendData(JSON.stringify({
-                score: totalScore,
+                score: score,
                 userId: userData.uniqueId,
                 login: userData.login
             }));
@@ -664,215 +535,166 @@
         score = 0;
         selectedOption = null;
         answerSubmitted = false;
-        extraLife = false; // Əlavə canı sıfırla
+        extraLife = false;
         
         updateScore();
         
-        const resultScreen = document.getElementById('resultScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        const menuTabs = document.querySelectorAll('.menu-tab');
-        const headerTitle = document.getElementById('headerTitle');
+        const rs = document.getElementById('resultScreen');
+        const gs = document.getElementById('gameScreen');
+        const tabs = document.querySelectorAll('.menu-tab');
+        const title = document.getElementById('headerTitle');
         
-        if (resultScreen) resultScreen.classList.remove('active');
-        if (gameScreen) gameScreen.classList.add('active');
+        if (rs) rs.classList.remove('active');
+        if (gs) gs.classList.add('active');
         
-        if (menuTabs.length > 0) {
-            menuTabs.forEach(t => t.classList.remove('active'));
-            menuTabs[0].classList.add('active');
-        }
-        
-        if (headerTitle) headerTitle.textContent = 'Sual-Cavab';
+        tabs.forEach(t => t.classList.remove('active'));
+        if (tabs[0]) tabs[0].classList.add('active');
+        if (title) title.textContent = 'Sual-Cavab';
         
         loadQuestion();
         updateQuestionCounter();
     }
 
     // ------------------------------------------------------------
-    // LİDERLƏR PANELİ FUNKSİYALARI (SADƏLƏŞDİRİLMİŞ)
+    // LİDERLƏR PANELİ (SADƏ)
     // ------------------------------------------------------------
 
     function loadLeaderboard(period) {
-        console.log(`${period} liderlər paneli yüklənir...`);
+        const list = document.getElementById(`${period}Leaderboard`);
+        const prev = document.getElementById(`previous${period.charAt(0).toUpperCase() + period.slice(1)}Leaderboard`);
+        const upd = document.getElementById(`${period}LastUpdated`);
         
-        const leaderboardList = document.getElementById(`${period}Leaderboard`);
-        const previousList = document.getElementById(`previous${period.charAt(0).toUpperCase() + period.slice(1)}Leaderboard`);
-        const lastUpdated = document.getElementById(`${period}LastUpdated`);
+        if (list) list.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+        if (prev) prev.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
         
-        if (leaderboardList) {
-            leaderboardList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
-        }
-        
-        if (previousList) {
-            previousList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
-        }
-        
-        // Mock məlumatlar
         setTimeout(() => {
-            if (leaderboardList) {
-                leaderboardList.innerHTML = generateMockLeaderboardHTML(15);
+            if (list) {
+                let html = '';
+                for (let i = 0; i < 15; i++) {
+                    const score = Math.floor(Math.random() * 5000) + 500;
+                    const names = ['Kənan','Aysel','Rəşad','Leyla','Elvin','Nigar','Orxan','Fatimə','Murad','Zəhra'];
+                    const name = names[i % names.length];
+                    
+                    let rankClass = '';
+                    if (i === 0) rankClass = 'top-1';
+                    else if (i === 1) rankClass = 'top-2';
+                    else if (i === 2) rankClass = 'top-3';
+                    
+                    const isCurrent = i === 2;
+                    
+                    html += `
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank ${rankClass}">${i+1}</div>
+                            <div class="leaderboard-info">
+                                <div class="leaderboard-name">
+                                    ${name} ${isCurrent ? '<span class="leaderboard-badge">Siz</span>' : ''} ${i===0?'👑':''}
+                                </div>
+                                <div class="leaderboard-score">Xal <span>${score}</span></div>
+                            </div>
+                            <div>${i===0?'🥇':i===1?'🥈':i===2?'🥉':''}</div>
+                        </div>
+                    `;
+                }
+                list.innerHTML = html;
             }
             
-            if (previousList) {
-                previousList.innerHTML = generateMockLeaderboardHTML(10, true);
+            if (prev) {
+                let html = '';
+                for (let i = 0; i < 10; i++) {
+                    const score = Math.floor(Math.random() * 4000) + 400;
+                    const names = ['Kənan','Aysel','Rəşad','Leyla','Elvin','Nigar','Orxan','Fatimə','Murad','Zəhra'];
+                    html += `
+                        <div class="leaderboard-item">
+                            <div class="leaderboard-rank">${i+1}</div>
+                            <div class="leaderboard-info">
+                                <div class="leaderboard-name">${names[i % names.length]}</div>
+                                <div class="leaderboard-score">Xal <span>${score}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                prev.innerHTML = html;
             }
             
-            if (lastUpdated) {
-                const now = new Date();
-                lastUpdated.textContent = `Son yenilənmə: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            if (upd) {
+                const d = new Date();
+                upd.textContent = `Son yenilənmə: ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
             }
             
-            // Statistikanı yenilə
-            document.getElementById(`${period}TotalPlayers`).textContent = Math.floor(Math.random() * 100) + 50;
-            document.getElementById(`${period}TotalGames`).textContent = Math.floor(Math.random() * 200) + 100;
-            document.getElementById(`${period}TopScore`).textContent = Math.floor(Math.random() * 5000) + 1000;
-            
+            document.getElementById(`${period}TotalPlayers`).textContent = Math.floor(Math.random()*100)+50;
+            document.getElementById(`${period}TotalGames`).textContent = Math.floor(Math.random()*200)+100;
+            document.getElementById(`${period}TopScore`).textContent = Math.floor(Math.random()*5000)+1000;
         }, 800);
     }
 
-    function generateMockLeaderboardHTML(count, isPrevious = false) {
-        const names = ['Kənan', 'Aysel', 'Rəşad', 'Leyla', 'Elvin', 'Nigar', 'Orxan', 'Fatimə', 'Murad', 'Zəhra'];
-        let html = '';
-        
-        for (let i = 0; i < count; i++) {
-            const score = Math.floor(Math.random() * 5000) + 500;
-            const name = names[i % names.length];
-            const isCurrentUser = i === 2 && !isPrevious;
-            
-            let rankClass = '';
-            if (i === 0) rankClass = 'top-1';
-            else if (i === 1) rankClass = 'top-2';
-            else if (i === 2) rankClass = 'top-3';
-            
-            html += `
-                <div class="leaderboard-item">
-                    <div class="leaderboard-rank ${rankClass}">${i + 1}</div>
-                    <div class="leaderboard-info">
-                        <div class="leaderboard-name">
-                            ${name}
-                            ${isCurrentUser ? '<span class="leaderboard-badge">Siz</span>' : ''}
-                            ${i === 0 && !isPrevious ? ' 👑' : ''}
-                        </div>
-                        <div class="leaderboard-score">
-                            Xal <span>${score}</span>
-                        </div>
-                    </div>
-                    <div style="font-size: 1.2rem;">
-                        ${i === 0 && !isPrevious ? '🥇' : i === 1 && !isPrevious ? '🥈' : i === 2 && !isPrevious ? '🥉' : ''}
-                    </div>
-                </div>
-            `;
-        }
-        
-        return html;
-    }
-
     // ------------------------------------------------------------
-    // EVENT DİNLƏYİCİLƏRİ (DOM YÜKLƏNDİKDƏN SONRA)
+    // EVENT DİNLƏYİCİLƏRİ
     // ------------------------------------------------------------
     
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM yükləndi, eventlər əlavə edilir...');
+        console.log('DOM yükləndi, versiya 2.0 (AdsGram test rejimi aktiv)');
         
         // Oyun düymələri
-        const submitBtn = document.getElementById('submitBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const newGameBtn = document.getElementById('newGameBtn');
-        const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
+        document.getElementById('submitBtn')?.addEventListener('click', handleSubmit);
+        document.getElementById('nextBtn')?.addEventListener('click', handleNext);
+        document.getElementById('newGameBtn')?.addEventListener('click', resetGame);
         
-        if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
-        if (nextBtn) nextBtn.addEventListener('click', handleNext);
-        if (newGameBtn) newGameBtn.addEventListener('click', resetGame);
-        
-        if (viewLeaderboardBtn) {
-            viewLeaderboardBtn.addEventListener('click', () => {
-                const resultScreen = document.getElementById('resultScreen');
-                const dailyScreen = document.getElementById('dailyScreen');
-                const headerTitle = document.getElementById('headerTitle');
-                const menuTabs = document.querySelectorAll('.menu-tab');
-                
-                if (resultScreen) resultScreen.classList.remove('active');
-                if (dailyScreen) dailyScreen.classList.add('active');
-                if (headerTitle) headerTitle.textContent = 'Günlük Liderlər';
-                
-                if (menuTabs.length > 0) {
-                    menuTabs.forEach(t => t.classList.remove('active'));
-                    if (menuTabs[1]) menuTabs[1].classList.add('active');
-                }
-                
-                loadLeaderboard('daily');
-            });
-        }
+        document.getElementById('viewLeaderboardBtn')?.addEventListener('click', () => {
+            document.getElementById('resultScreen')?.classList.remove('active');
+            document.getElementById('dailyScreen')?.classList.add('active');
+            document.getElementById('headerTitle').textContent = 'Günlük Liderlər';
+            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.menu-tab')[1]?.classList.add('active');
+            loadLeaderboard('daily');
+        });
 
         // Profil paneli
-        const profileBtn = document.getElementById('profileBtn');
-        const userProfile = document.getElementById('userProfile');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const closeSidebar = document.getElementById('closeSidebar');
-        const saveProfileBtn = document.getElementById('saveProfileBtn');
-        
-        if (profileBtn) {
-            profileBtn.addEventListener('click', () => {
-                displayUserProfile();
-                if (userProfile) userProfile.classList.add('active');
-                if (sidebarOverlay) sidebarOverlay.classList.add('active');
-            });
-        }
+        document.getElementById('profileBtn')?.addEventListener('click', () => {
+            displayUserProfile();
+            document.getElementById('userProfile')?.classList.add('active');
+            document.getElementById('sidebarOverlay')?.classList.add('active');
+        });
 
-        if (closeSidebar) {
-            closeSidebar.addEventListener('click', () => {
-                if (userProfile) userProfile.classList.remove('active');
-                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-            });
-        }
+        document.getElementById('closeSidebar')?.addEventListener('click', () => {
+            document.getElementById('userProfile')?.classList.remove('active');
+            document.getElementById('sidebarOverlay')?.classList.remove('active');
+        });
 
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', () => {
-                if (userProfile) userProfile.classList.remove('active');
-                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-            });
-        }
+        document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+            document.getElementById('userProfile')?.classList.remove('active');
+            document.getElementById('sidebarOverlay')?.classList.remove('active');
+        });
 
-        if (saveProfileBtn) {
-            saveProfileBtn.addEventListener('click', saveUserProfile);
-        }
+        document.getElementById('saveProfileBtn')?.addEventListener('click', saveUserProfile);
 
         // Menu keçidləri
-        const menuTabs = document.querySelectorAll('.menu-tab');
-        menuTabs.forEach((tab) => {
+        document.querySelectorAll('.menu-tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                const screenName = tab.dataset.screen;
-                
-                menuTabs.forEach(t => t.classList.remove('active'));
+                const screen = tab.dataset.screen;
+                document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 
-                document.querySelectorAll('.screen').forEach(screen => {
-                    screen.classList.remove('active');
-                });
+                const title = document.getElementById('headerTitle');
                 
-                const headerTitle = document.getElementById('headerTitle');
-                
-                switch(screenName) {
+                switch(screen) {
                     case 'game':
-                        const gameScreen = document.getElementById('gameScreen');
-                        if (gameScreen) gameScreen.classList.add('active');
-                        if (headerTitle) headerTitle.textContent = 'Sual-Cavab';
+                        document.getElementById('gameScreen')?.classList.add('active');
+                        if (title) title.textContent = 'Sual-Cavab';
                         break;
                     case 'daily':
-                        const dailyScreen = document.getElementById('dailyScreen');
-                        if (dailyScreen) dailyScreen.classList.add('active');
-                        if (headerTitle) headerTitle.textContent = 'Günlük Liderlər';
+                        document.getElementById('dailyScreen')?.classList.add('active');
+                        if (title) title.textContent = 'Günlük Liderlər';
                         loadLeaderboard('daily');
                         break;
                     case 'weekly':
-                        const weeklyScreen = document.getElementById('weeklyScreen');
-                        if (weeklyScreen) weeklyScreen.classList.add('active');
-                        if (headerTitle) headerTitle.textContent = 'Həftəlik Liderlər';
+                        document.getElementById('weeklyScreen')?.classList.add('active');
+                        if (title) title.textContent = 'Həftəlik Liderlər';
                         loadLeaderboard('weekly');
                         break;
                     case 'monthly':
-                        const monthlyScreen = document.getElementById('monthlyScreen');
-                        if (monthlyScreen) monthlyScreen.classList.add('active');
-                        if (headerTitle) headerTitle.textContent = 'Aylıq Liderlər';
+                        document.getElementById('monthlyScreen')?.classList.add('active');
+                        if (title) title.textContent = 'Aylıq Liderlər';
                         loadLeaderboard('monthly');
                         break;
                 }
@@ -880,52 +702,12 @@
         });
 
         // Yenilə düymələri
-        const refreshDaily = document.getElementById('refreshDaily');
-        const refreshWeekly = document.getElementById('refreshWeekly');
-        const refreshMonthly = document.getElementById('refreshMonthly');
-        
-        if (refreshDaily) {
-            refreshDaily.addEventListener('click', () => loadLeaderboard('daily'));
-        }
-        
-        if (refreshWeekly) {
-            refreshWeekly.addEventListener('click', () => loadLeaderboard('weekly'));
-        }
-        
-        if (refreshMonthly) {
-            refreshMonthly.addEventListener('click', () => loadLeaderboard('monthly'));
-        }
-
-        // Telegram geri düyməsi
-        if (tg) {
-            tg.onEvent('backButtonClicked', () => {
-                const userProfile = document.getElementById('userProfile');
-                const dailyScreen = document.getElementById('dailyScreen');
-                const weeklyScreen = document.getElementById('weeklyScreen');
-                const monthlyScreen = document.getElementById('monthlyScreen');
-                const resultScreen = document.getElementById('resultScreen');
-                const sidebarOverlay = document.getElementById('sidebarOverlay');
-                
-                if (userProfile && userProfile.classList.contains('active')) {
-                    userProfile.classList.remove('active');
-                    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-                } else if ((dailyScreen && dailyScreen.classList.contains('active')) || 
-                           (weeklyScreen && weeklyScreen.classList.contains('active')) || 
-                           (monthlyScreen && monthlyScreen.classList.contains('active'))) {
-                    const gameTab = document.querySelector('.menu-tab[data-screen="game"]');
-                    if (gameTab) gameTab.click();
-                } else if (resultScreen && resultScreen.classList.contains('active')) {
-                    resetGame();
-                } else {
-                    tg.close();
-                }
-            });
-        }
+        document.getElementById('refreshDaily')?.addEventListener('click', () => loadLeaderboard('daily'));
+        document.getElementById('refreshWeekly')?.addEventListener('click', () => loadLeaderboard('weekly'));
+        document.getElementById('refreshMonthly')?.addEventListener('click', () => loadLeaderboard('monthly'));
 
         // Başlanğıc
-        loadUserFromFirebase().then(() => {
-            resetGame();
-        });
+        loadUserFromFirebase().then(() => resetGame());
     });
 
 })();
