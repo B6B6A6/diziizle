@@ -19,7 +19,7 @@
     // ADSGRAM REKLAM KONFİQURASİYASI - ÖZ BLOCK ID-NİZİ YAZIN
     // ------------------------------------------------------------
     const ADSGRAM_CONFIG = {
-        BLOCK_ID: '1234-5678-9012-3456', // AdsGram panelindən aldığınız REAL block ID
+        BLOCK_ID: '8403904397', // AdsGram panelindən aldığınız REAL block ID
         IS_ENABLED: true,
         TEST_MODE: true // Test rejimi (reklam olmadan sınaq üçün)
     };
