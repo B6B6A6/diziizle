@@ -1,6 +1,6 @@
 (function() {
     // ------------------------------------------------------------
-    // GLOBAL DƏYİŞƏNLƠR
+    // GLOBAL DƏYİŞƏNLƏR
     // ------------------------------------------------------------
     
     // Telegram WebApp ilə əlaqə
@@ -16,12 +16,12 @@
     }
 
     // ------------------------------------------------------------
-    // ADSGRAM REKLAM KONFİQURASİYASI - ÖZ BLOCK ID-NİZİ YAZIN
+    // ADSGRAM REKLAM KONFİQURASİYASI - BLOCK ID ƏLAVƏ EDİLDİ
     // ------------------------------------------------------------
     const ADSGRAM_CONFIG = {
-        BLOCK_ID: '8403904397', // AdsGram panelindən aldığınız REAL block ID
+        BLOCK_ID: '8403904397', // Sizin verdiyiniz BLOCK ID
         IS_ENABLED: true,
-        TEST_MODE: true // Test rejimi (reklam olmadan sınaq üçün)
+        TEST_MODE: false // Test rejimi söndürüldü, real reklam işləyəcək
     };
 
     // ------------------------------------------------------------
@@ -122,7 +122,7 @@
     }
 
     // ------------------------------------------------------------
-    // ADSGRAM REKLAM FUNKSİYALARI - YENİLƏNƏN VERSİYA
+    // ADSGRAM REKLAM FUNKSİYALARI
     // ------------------------------------------------------------
 
     // SDK-nın yükləndiyini yoxla
@@ -155,18 +155,6 @@
         });
     }
 
-    // Test rejimi üçün mock reklam
-    function showTestReward() {
-        console.log('🧪 Test rejimi: Reklam göstərilir...');
-        
-        showNotification('🔴 Test reklamı: 3 saniyə gözləyin...', false);
-        
-        setTimeout(() => {
-            handleAdReward();
-            showNotification('✅ Test reklamı tamamlandı! Bonus verildi.', true);
-        }, 3000);
-    }
-
     // Reklamdan sonra mükafatı ver
     function handleAdReward() {
         extraLife = true;
@@ -186,27 +174,11 @@
         });
     }
 
-    // AdsGram reklamını göstər - YENİLƏNƏN VERSİYA
+    // AdsGram reklamını göstər
     async function showAdsGramRewardedAd() {
-        // Test rejimi aktivdirsə, mock reklam göstər
-        if (ADSGRAM_CONFIG.TEST_MODE) {
-            showTestReward();
-            return true;
-        }
-
         if (!ADSGRAM_CONFIG.IS_ENABLED) {
             console.log('ℹ️ AdsGram reklamı deaktivdir');
             return false;
-        }
-
-        if (!ADSGRAM_CONFIG.BLOCK_ID || ADSGRAM_CONFIG.BLOCK_ID === 'YOUR_ADSGRAM_BLOCK_ID' || ADSGRAM_CONFIG.BLOCK_ID.length < 5) {
-            console.error('❌ AdsGram BLOCK_ID yanlışdır:', ADSGRAM_CONFIG.BLOCK_ID);
-            showNotification('Reklam ID-si düzgün deyil!', false);
-            
-            // Test rejimini aktiv et
-            ADSGRAM_CONFIG.TEST_MODE = true;
-            showTestReward();
-            return true;
         }
 
         try {
@@ -228,11 +200,8 @@
                 },
                 onError: (error) => {
                     console.error('❌ AdsGram xətası:', error);
-                    showNotification('Reklam göstərilə bilmədi: ' + (error.message || 'Bilinməyən xəta'), false);
-                    
-                    // Xəta olduqda test rejiminə keç
-                    ADSGRAM_CONFIG.TEST_MODE = true;
-                    showTestReward();
+                    showNotification('Reklam göstərilə bilmədi', false);
+                    handleWrongAnswerWithoutAd();
                 },
                 onClose: () => {
                     console.log('Reklam bağlandı');
@@ -246,11 +215,8 @@
 
         } catch (error) {
             console.error('❌ AdsGram reklamı xətası:', error);
-            showNotification('Reklam xətası: ' + error.message, false);
-            
-            // Xəta olduqda test rejiminə keç
-            ADSGRAM_CONFIG.TEST_MODE = true;
-            showTestReward();
+            showNotification('Reklam xətası', false);
+            handleWrongAnswerWithoutAd();
             return false;
         }
     }
@@ -265,7 +231,7 @@
     }
 
     // ------------------------------------------------------------
-    // FIREBASE FUNKSİYALARI (SADƏLƏŞDİRİLMİŞ)
+    // FIREBASE FUNKSİYALARI
     // ------------------------------------------------------------
 
     async function loadUserFromFirebase() {
@@ -277,7 +243,6 @@
     }
 
     async function saveUserToFirebase() {
-        // Firebase yoxdursa, sadəcə local-a yaz
         saveUserToLocalStorage();
     }
 
@@ -556,7 +521,7 @@
     }
 
     // ------------------------------------------------------------
-    // LİDERLƏR PANELİ (SADƏ)
+    // LİDERLƏR PANELİ
     // ------------------------------------------------------------
 
     function loadLeaderboard(period) {
@@ -632,7 +597,7 @@
     // ------------------------------------------------------------
     
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM yükləndi, versiya 2.0 (AdsGram test rejimi aktiv)');
+        console.log('DOM yükləndi, BLOCK ID: 8403904397 aktiv edildi');
         
         // Oyun düymələri
         document.getElementById('submitBtn')?.addEventListener('click', handleSubmit);
@@ -709,5 +674,4 @@
         // Başlanğıc
         loadUserFromFirebase().then(() => resetGame());
     });
-
 })();
